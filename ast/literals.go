@@ -15,14 +15,14 @@ func (il *IntegerLiteral) expressionNode()      {}
 func (il *IntegerLiteral) TokenLiteral() string { return il.Token.Literal }
 func (il *IntegerLiteral) String() string       { return il.Token.Literal }
 
-type Boolean struct {
+type BooleanLiteral struct {
 	Token token.Token
 	Value bool
 }
 
-func (b *Boolean) expressionNode()      {}
-func (b *Boolean) TokenLiteral() string { return b.Token.Literal }
-func (b *Boolean) String() string       { return b.Token.Literal }
+func (b *BooleanLiteral) expressionNode()      {}
+func (b *BooleanLiteral) TokenLiteral() string { return b.Token.Literal }
+func (b *BooleanLiteral) String() string       { return b.Token.Literal }
 
 type FunctionLiteral struct {
 	Token      token.Token // The 'fn' token

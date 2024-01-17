@@ -627,7 +627,7 @@ func testIntegerLiteral(t *testing.T, il ast.Expression, value int64) bool {
 	return true
 }
 func testBooleanLiteral(t *testing.T, exp ast.Expression, value bool) bool {
-	bo, ok := exp.(*ast.Boolean)
+	bo, ok := exp.(*ast.BooleanLiteral)
 	if !ok {
 		t.Errorf("exp not *ast.Boolean. got=%T", exp)
 		return false

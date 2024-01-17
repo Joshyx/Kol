@@ -20,7 +20,7 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 }
 
 func (p *Parser) parseBooleanLiteral() ast.Expression {
-	return &ast.Boolean{Token: p.curToken, Value: p.curTokenIs(token.TRUE)}
+	return &ast.BooleanLiteral{Token: p.curToken, Value: p.curTokenIs(token.TRUE)}
 }
 
 func (p *Parser) parseFunctionLiteral() ast.Expression {
