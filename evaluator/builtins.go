@@ -1,11 +1,21 @@
 package evaluator
 
 import (
+	"fmt"
 	"kol/object"
 	"strconv"
 )
 
 var builtins = map[string]*object.Builtin{
+	"println": {
+		Fn: func(args ...object.Object) object.Object {
+			for _, o := range args {
+				fmt.Print(o.Inspect())
+			}
+			fmt.Println()
+			return NULL
+		},
+	},
 	"len": {
 		Fn: func(args ...object.Object) object.Object {
 			if len(args) != 1 {
