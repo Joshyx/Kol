@@ -162,9 +162,6 @@ func TestHashLiterals(t *testing.T) {
 "one": 10 - 9,
 two: 1 + 1,
 "thr" + "ee": 6 / 2,
-4: 4,
-true: 5,
-false: 6
 }`
 	evaluated := testEval(input)
 	result, ok := evaluated.(*object.Hash)
@@ -175,9 +172,6 @@ false: 6
 		(&object.String{Value: "one"}).HashKey():   1,
 		(&object.String{Value: "two"}).HashKey():   2,
 		(&object.String{Value: "three"}).HashKey(): 3,
-		(&object.Integer{Value: 4}).HashKey():      4,
-		TRUE.HashKey():                             5,
-		FALSE.HashKey():                            6,
 	}
 	if len(result.Pairs) != len(expected) {
 		t.Fatalf("Hash has wrong num of pairs. got=%d", len(result.Pairs))
@@ -210,18 +204,6 @@ func TestHashIndexExpressions(t *testing.T) {
 		{
 			`{}["foo"]`,
 			nil,
-		},
-		{
-			`{5: 5}[5]`,
-			5,
-		},
-		{
-			`{true: 5}[true]`,
-			5,
-		},
-		{
-			`{false: 5}[false]`,
-			5,
 		},
 	}
 	for _, tt := range tests {
@@ -271,7 +253,6 @@ func TestIfElseExpressions(t *testing.T) {
 	}{
 		{"if (true) { 10 }", 10},
 		{"if (false) { 10 }", nil},
-		{"if (1) { 10 }", 10},
 		{"if (1 < 2) { 10 }", 10},
 		{"if (1 > 2) { 10 }", nil},
 		{"if (1 > 2) { 10 } else { 20 }", 20},
@@ -320,8 +301,12 @@ func TestErrorHandling(t *testing.T) {
 		expectedMessage string
 	}{
 		{
-			`{"name": "Monkey"}[fn(x) { x }];`,
-			"unusable as hash key: FUNCTION",
+			`{"name": "Monkey"}[4];`,
+			"unusable as hash key: INTEGER",
+		},
+		{
+			`{"name": "Monkey"}[true];`,
+			"unusable as hash key: BOOLEAN",
 		},
 		{
 			`"Hello" - "World"`,
@@ -366,12 +351,12 @@ return 1;
 			"identifier not found: foobar",
 		},
 	}
-	for _, tt := range tests {
+	for i, tt := range tests {
 		evaluated := testEval(tt.input)
 		errObj, ok := evaluated.(*object.Error)
 		if !ok {
-			t.Errorf("no error object returned. got=%T(%+v)",
-				evaluated, evaluated)
+			t.Errorf("[Test %d] no error object returned. got=%T(%+v)",
+				i, evaluated, evaluated)
 			continue
 		}
 		if errObj.Message != tt.expectedMessage {

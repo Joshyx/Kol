@@ -10,24 +10,15 @@ func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Obje
 	if isError(condition) {
 		return condition
 	}
+	if condition.Type() != object.BOOLEAN_OBJ {
+		return newError("%s is not of type BOOLEAN and can't be used in an if-statement", condition.Type())
+	}
 
-	if isTruthy(condition) {
+	if condition == TRUE {
 		return Eval(ie.Consequence, env)
-	} else if ie.Alternative != nil {
+	} else if condition == FALSE && ie.Alternative != nil {
 		return Eval(ie.Alternative, env)
 	} else {
 		return NULL
-	}
-}
-func isTruthy(obj object.Object) bool {
-	switch obj {
-	case NULL:
-		return false
-	case TRUE:
-		return true
-	case FALSE:
-		return false
-	default:
-		return true
 	}
 }

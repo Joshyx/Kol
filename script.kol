@@ -1,6 +1,6 @@
 let add = fun(a, b) {
     // Adds two numbers
-    a + b /*Second*/
+    a /*First*/+ b /*Second*/
 }
 
 println(add(5, 3));
