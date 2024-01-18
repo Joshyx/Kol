@@ -1,5 +1,6 @@
 let add = fun(a, b) {
-    a + b
+    // Adds two numbers
+    a + b /*Second*/
 }
 
 println(add(5, 3));

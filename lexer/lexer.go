@@ -1,6 +1,8 @@
 package lexer
 
-import "kol/token"
+import (
+	"kol/token"
+)
 
 type Lexer struct {
 	input        string
@@ -38,6 +40,7 @@ func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
 
 	l.skipWhitespace()
+	l.skipComment()
 
 	switch l.ch {
 	case '=':
@@ -113,6 +116,26 @@ func (l *Lexer) NextToken() token.Token {
 func (l *Lexer) skipWhitespace() {
 	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
 		l.readChar()
+	}
+}
+
+func (l *Lexer) skipComment() {
+	if l.ch != '/' {
+		return
+	}
+
+	if l.peekChar() == '/' {
+		for l.ch != '\n' {
+			l.readChar()
+		}
+		l.skipWhitespace()
+	} else if l.peekChar() == '*' {
+		for !(l.ch == '*' && l.peekChar() == '/') {
+			l.readChar()
+		}
+		l.readChar()
+		l.readChar()
+		l.skipWhitespace()
 	}
 }
 

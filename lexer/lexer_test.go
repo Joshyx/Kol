@@ -8,27 +8,27 @@ import (
 
 func TestNextToken(t *testing.T) {
 	input := `let five = 5;
-let ten = 10;
+let ten = 10;//asdasdasdasd                        
 
 let add = fun(x, y) {
-  x + y;
+  x /*asd*/+ y;
 };
 
 let result = add(five, ten);
-!-/*5;
+!-/ *5;
 5 < 10 > 5;
 
 if (5 < 10) {
 	return true;
 } else {
-	return false;
+	/*Is this comment being ignored?*/ return false;
 }
 
-10 == 10;
+10 /*asd*/ == 10;
 10 != 9;
 "foobar"
 "foo bar"
-[1, 2];
+[1, 2]; // This comment should be ignored
 {"foo": "bar"}
 `
 
@@ -131,8 +131,8 @@ if (5 < 10) {
 		tok := l.NextToken()
 
 		if tok.Type != tt.expectedType {
-			t.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q",
-				i, tt.expectedType, tok.Type)
+			t.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q (value=%q)",
+				i, tt.expectedType, tok.Type, tok.Literal)
 		}
 
 		if tok.Literal != tt.expectedLiteral {
