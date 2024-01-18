@@ -1,0 +1,5 @@
+let add = fun(a, b) {
+    a + b
+}
+
+println(add(5, 3));
