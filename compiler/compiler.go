@@ -35,6 +35,30 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 		c.emit(code.OpPop)
 	case *ast.InfixExpression:
+		if node.Operator == "<" {
+			err := c.Compile(node.Right)
+			if err != nil {
+				return err
+			}
+			err = c.Compile(node.Left)
+			if err != nil {
+				return err
+			}
+			c.emit(code.OpGreaterThan)
+			return nil
+		}
+		if node.Operator == "<=" {
+			err := c.Compile(node.Right)
+			if err != nil {
+				return err
+			}
+			err = c.Compile(node.Left)
+			if err != nil {
+				return err
+			}
+			c.emit(code.OpGreaterEqualsThan)
+			return nil
+		}
 		err := c.Compile(node.Left)
 		if err != nil {
 			return err
@@ -53,8 +77,22 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.emit(code.OpMul)
 		case "/":
 			c.emit(code.OpDiv)
+		case ">":
+			c.emit(code.OpGreaterThan)
+		case ">=":
+			c.emit(code.OpGreaterEqualsThan)
+		case "==":
+			c.emit(code.OpEqual)
+		case "!=":
+			c.emit(code.OpNotEqual)
 		default:
 			return fmt.Errorf("unknown operator %s", node.Operator)
+		}
+	case *ast.BooleanLiteral:
+		if node.Value {
+			c.emit(code.OpTrue)
+		} else {
+			c.emit(code.OpFalse)
 		}
 	case *ast.IntegerLiteral:
 		integer := &object.Integer{Value: node.Value}
