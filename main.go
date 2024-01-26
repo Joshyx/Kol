@@ -2,22 +2,49 @@ package main
 
 import (
 	"fmt"
-	"kol/cli"
+	kol "kol/cli"
+	"log"
 	"os"
-	"os/user"
+
+	"github.com/urfave/cli/v2"
 )
 
 func main() {
-	args := os.Args[1:]
+	app := &cli.App{
+		Name:  "Kol",
+		Usage: "A compiler/interpreter for the best language",
+		Commands: []*cli.Command{
+			{
+				Name:    "interpret",
+				Aliases: []string{"i"},
+				Usage:   "Start Interpreter",
+				Action: func(cCtx *cli.Context) error {
+					startInterpreter(cCtx.Args().First())
+					return nil
+				},
+			},
+			{
+				Name:    "compile",
+				Aliases: []string{"c"},
+				Usage:   "Start Compiler",
+				Action: func(cCtx *cli.Context) error {
+					startCompiler(cCtx.Args().First())
+					return nil
+				},
+			},
+		},
+	}
 
-	if len(args) == 0 {
-		startRepl()
-	} else {
-		startInterpreter(args[0])
+	if err := app.Run(os.Args); err != nil {
+		log.Fatal(err)
 	}
 }
 
 func startInterpreter(fileName string) {
+	if len(fileName) == 0 {
+		kol.StartInterpretedRepl()
+		return
+	}
 	content, err := os.ReadFile(fileName)
 
 	if err != nil {
@@ -27,23 +54,21 @@ func startInterpreter(fileName string) {
 
 	text := string(content)
 
-	cli.StartInterpreter(text)
+	kol.StartInterpreter(text)
 }
-
-func startRepl() {
-	user, err := user.Current()
+func startCompiler(fileName string) {
+	if len(fileName) == 0 {
+		kol.StartCompiledRepl()
+		return
+	}
+	content, err := os.ReadFile(fileName)
 
 	if err != nil {
-		panic(err)
+		fmt.Printf("Encountered Error: %s\n", err)
+		return
 	}
 
-	fmt.Printf("Hello %s! This is the Kol programming language!\n", user.Username)
-	fmt.Printf("Feel free to type in commands\n")
-	cli.StartRepl(os.Stdin, os.Stdout)
-}
+	text := string(content)
 
-func printParserErrors(errors []string) {
-	for _, msg := range errors {
-		fmt.Println("\t" + msg + "\n")
-	}
+	kol.StartCompiler(text)
 }

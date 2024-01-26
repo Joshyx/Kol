@@ -1,11 +1,15 @@
 package cli
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"kol/evaluator"
 	"kol/lexer"
 	"kol/object"
 	"kol/parser"
+	"os"
+	"os/user"
 )
 
 func StartInterpreter(input string) {
@@ -22,4 +26,37 @@ func StartInterpreter(input string) {
 
 	env := object.NewEnvironment()
 	evaluator.Eval(program, env)
+}
+func StartInterpretedRepl() {
+	user, err := user.Current()
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Hello %s! This is the Kol programming language!\n", user.Username)
+	fmt.Printf("Feel free to type in commands\n")
+
+	scanner := bufio.NewScanner(os.Stdin)
+	env := object.NewEnvironment()
+	for {
+		fmt.Printf(PROMPT)
+		scanned := scanner.Scan()
+		if !scanned {
+			return
+		}
+		line := scanner.Text()
+		l := lexer.New(line)
+		p := parser.New(l)
+		program := p.ParseProgram()
+		if len(p.Errors()) != 0 {
+			printParserErrors(p.Errors())
+			continue
+		}
+		evaluated := evaluator.Eval(program, env)
+		if evaluated != nil {
+			io.WriteString(os.Stdout, evaluated.Inspect())
+			io.WriteString(os.Stdout, "\n")
+		}
+	}
 }
