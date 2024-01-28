@@ -12,6 +12,8 @@ const StackSize = 2048
 var True = &object.Boolean{Value: true}
 var False = &object.Boolean{Value: false}
 
+var Null = &object.Null{}
+
 type VM struct {
 	constants    []object.Object
 	instructions code.Instructions
@@ -83,6 +85,21 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
+		case code.OpNull:
+			err := vm.push(Null)
+			if err != nil {
+				return err
+			}
+		case code.OpJump:
+			pos := int(code.ReadUint16(vm.instructions[ip+1:]))
+			ip = pos - 1
+		case code.OpJumpNotTrue:
+			pos := int(code.ReadUint16(vm.instructions[ip+1:]))
+			ip += 2
+			condition := vm.pop()
+			if !isTrue(condition) {
+				ip = pos - 1
+			}
 		case code.OpPop:
 			vm.pop()
 		}
@@ -153,7 +170,7 @@ func (vm *VM) executeBangOperator() error {
 	case False:
 		return vm.push(True)
 	default:
-		return vm.push(False)
+		return fmt.Errorf("Can't convert %s to a boolean", operand.Type())
 	}
 }
 func (vm *VM) executeIntegerComparison(
@@ -196,4 +213,7 @@ func nativeBoolToBooleanObject(input bool) *object.Boolean {
 		return True
 	}
 	return False
+}
+func isTrue(obj object.Object) bool {
+	return obj == True
 }
