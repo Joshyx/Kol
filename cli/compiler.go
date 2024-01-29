@@ -40,8 +40,6 @@ func StartCompiler(input string) {
 		fmt.Fprintf(out, "Woops! Executing bytecode failed:\n %s\n", err)
 		return
 	}
-	stackTop := machine.StackTop()
-	fmt.Println(stackTop.Inspect())
 }
 func StartCompiledRepl() {
 	scanner := bufio.NewScanner(in)
@@ -49,6 +47,10 @@ func StartCompiledRepl() {
 	constants := []object.Object{}
 	globals := make([]object.Object, vm.GlobalsSize)
 	symbolTable := compiler.NewSymbolTable()
+
+	for i, v := range object.Builtins {
+		symbolTable.DefineBuiltin(i, v.Name)
+	}
 
 	for {
 		fmt.Printf(PROMPT)

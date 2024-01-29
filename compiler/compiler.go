@@ -8,16 +8,6 @@ import (
 	"sort"
 )
 
-type EmittedInstruction struct {
-	Opcode   code.Opcode
-	Position int
-}
-type CompilationScope struct {
-	instructions        code.Instructions
-	lastInstruction     EmittedInstruction
-	previousInstruction EmittedInstruction
-}
-
 type Compiler struct {
 	constants   []object.Object
 	symbolTable *SymbolTable
@@ -26,6 +16,11 @@ type Compiler struct {
 }
 
 func New() *Compiler {
+	symbolTable := NewSymbolTable()
+	for i, v := range object.Builtins {
+		symbolTable.DefineBuiltin(i, v.Name)
+	}
+
 	mainScope := CompilationScope{
 		instructions:        code.Instructions{},
 		lastInstruction:     EmittedInstruction{},
@@ -33,7 +28,7 @@ func New() *Compiler {
 	}
 	return &Compiler{
 		constants:   []object.Object{},
-		symbolTable: NewSymbolTable(),
+		symbolTable: symbolTable,
 		scopes:      []CompilationScope{mainScope},
 		scopeIndex:  0,
 	}
@@ -143,11 +138,8 @@ func (c *Compiler) Compile(node ast.Node) error {
 		if !ok {
 			return fmt.Errorf("undefined variable %s", node.Value)
 		}
-		if symbol.Scope == GlobalScope {
-			c.emit(code.OpGetGlobal, symbol.Index)
-		} else {
-			c.emit(code.OpGetLocal, symbol.Index)
-		}
+
+		c.loadSymbol(symbol)
 	case *ast.IfExpression:
 		err := c.Compile(node.Condition)
 		if err != nil {
@@ -334,40 +326,21 @@ func (c *Compiler) replaceInstruction(pos int, newInstruction []byte) {
 	}
 }
 
-func (c *Compiler) Bytecode() *Bytecode {
-	return &Bytecode{
-		Instructions: c.currentInstructions(),
-		Constants:    c.constants,
-	}
-}
-
-type Bytecode struct {
-	Instructions code.Instructions
-	Constants    []object.Object
-}
-
 func (c *Compiler) currentInstructions() code.Instructions {
 	return c.scopes[c.scopeIndex].instructions
-}
-func (c *Compiler) enterScope() {
-	scope := CompilationScope{
-		instructions:    code.Instructions{},
-		lastInstruction: EmittedInstruction{}, previousInstruction: EmittedInstruction{},
-	}
-	c.scopes = append(c.scopes, scope)
-	c.scopeIndex++
-	c.symbolTable = NewEnclosedSymbolTable(c.symbolTable)
-}
-func (c *Compiler) leaveScope() code.Instructions {
-	instructions := c.currentInstructions()
-	c.scopes = c.scopes[:len(c.scopes)-1]
-	c.scopeIndex--
-
-	c.symbolTable = c.symbolTable.Outer
-	return instructions
 }
 func (c *Compiler) replaceLastPopWithReturn() {
 	lastPos := c.scopes[c.scopeIndex].lastInstruction.Position
 	c.replaceInstruction(lastPos, code.Make(code.OpReturnValue))
 	c.scopes[c.scopeIndex].lastInstruction.Opcode = code.OpReturnValue
+}
+func (c *Compiler) loadSymbol(s Symbol) {
+	switch s.Scope {
+	case GlobalScope:
+		c.emit(code.OpGetGlobal, s.Index)
+	case LocalScope:
+		c.emit(code.OpGetLocal, s.Index)
+	case BuiltinScope:
+		c.emit(code.OpGetBuiltin, s.Index)
+	}
 }
