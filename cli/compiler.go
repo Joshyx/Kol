@@ -6,6 +6,7 @@ import (
 	"io"
 	"kol/compiler"
 	"kol/lexer"
+	"kol/object"
 	"kol/parser"
 	"kol/vm"
 	"os"
@@ -43,8 +44,12 @@ func StartCompiler(input string) {
 	fmt.Println(stackTop.Inspect())
 }
 func StartCompiledRepl() {
-
 	scanner := bufio.NewScanner(in)
+
+	constants := []object.Object{}
+	globals := make([]object.Object, vm.GlobalsSize)
+	symbolTable := compiler.NewSymbolTable()
+
 	for {
 		fmt.Printf(PROMPT)
 		scanned := scanner.Scan()
@@ -59,13 +64,15 @@ func StartCompiledRepl() {
 			printParserErrors(p.Errors())
 			continue
 		}
-		comp := compiler.New()
+		comp := compiler.NewWithState(symbolTable, constants)
 		err := comp.Compile(program)
 		if err != nil {
 			fmt.Fprintf(out, "Woops! Compilation failed:\n %s\n", err)
 			continue
 		}
-		machine := vm.New(comp.Bytecode())
+		code := comp.Bytecode()
+		constants = code.Constants
+		machine := vm.NewWithGlobalsStore(code, globals)
 		err = machine.Run()
 		if err != nil {
 			fmt.Fprintf(out, "Woops! Executing bytecode failed:\n %s\n", err)
