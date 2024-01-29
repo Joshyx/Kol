@@ -100,6 +100,50 @@ func TestStringExpressions(t *testing.T) {
 	}
 	runVmTests(t, tests)
 }
+func TestArrayLiterals(t *testing.T) {
+	tests := []vmTestCase{
+		{"[]", []int{}},
+		{"[1, 2, 3]", []int{1, 2, 3}},
+		{"[1 + 2, 3 * 4, 5 + 6]", []int{3, 12, 11}},
+	}
+	runVmTests(t, tests)
+}
+func TestHashLiterals(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			"{}", map[object.HashKey]int64{},
+		},
+		{
+			"{\"1\": 2, \"2\": 3}",
+			map[object.HashKey]int64{
+				(&object.String{Value: "1"}).HashKey(): 2, (&object.String{Value: "2"}).HashKey(): 3,
+			},
+		},
+		{
+			"{\"a\" + \"sd\": 2 * 2, \"d\": 4 * 4}",
+			map[object.HashKey]int64{
+				(&object.String{Value: "asd"}).HashKey(): 4,
+				(&object.String{Value: "d"}).HashKey():   16,
+			},
+		},
+	}
+	runVmTests(t, tests)
+}
+func TestIndexExpressions(t *testing.T) {
+	tests := []vmTestCase{
+		{"[1, 2, 3][1]", 2},
+		{"[1, 2, 3][0 + 2]", 3},
+		{"[[1, 1, 1]][0][0]", 1},
+		{"[][0]", Null},
+		{"[1, 2, 3][99]", Null},
+		{"[1][-1]", Null},
+		{"{\"1\": 1, \"2\": 2}[\"1\"]", 1},
+		{"{\"1\": 1, \"2\": 2}[\"2\"]", 2},
+		{"{\"1\": 1}[\"0\"]", Null},
+		{"{}[\"-:\"]", Null},
+	}
+	runVmTests(t, tests)
+}
 
 func runVmTests(t *testing.T, tests []vmTestCase) {
 	t.Helper()
@@ -179,6 +223,44 @@ func testExpectedObject(
 	case *object.Null:
 		if actual != Null {
 			t.Errorf("object is not Null: %T (%+v)", actual, actual)
+		}
+	case []int:
+		array, ok := actual.(*object.Array)
+		if !ok {
+			t.Errorf("object not Array: %T (%+v)", actual, actual)
+			return
+		}
+		if len(array.Elements) != len(expected) {
+			t.Errorf("wrong num of elements. want=%d, got=%d",
+				len(expected), len(array.Elements))
+			return
+		}
+		for i, expectedElem := range expected {
+			err := testIntegerObject(int64(expectedElem), array.Elements[i])
+			if err != nil {
+				t.Errorf("testIntegerObject failed: %s", err)
+			}
+		}
+	case map[object.HashKey]int64:
+		hash, ok := actual.(*object.Hash)
+		if !ok {
+			t.Errorf("object is not Hash. got=%T (%+v)", actual, actual)
+			return
+		}
+		if len(hash.Pairs) != len(expected) {
+			t.Errorf("hash has wrong number of Pairs. want=%d, got=%d",
+				len(expected), len(hash.Pairs))
+			return
+		}
+		for expectedKey, expectedValue := range expected {
+			pair, ok := hash.Pairs[expectedKey]
+			if !ok {
+				t.Errorf("no pair for given key in Pairs")
+			}
+			err := testIntegerObject(expectedValue, pair.Value)
+			if err != nil {
+				t.Errorf("testIntegerObject failed: %s", err)
+			}
 		}
 	}
 }
