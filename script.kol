@@ -4,3 +4,10 @@ let add = fun(a, b) {
 }
 
 println(add(5, 3));
+
+let newAdder = fun(a) {
+    let adder = fun(b) { a + b; };
+    return adder;
+};
+let addTwo = newAdder(2);
+println(addTwo(3));

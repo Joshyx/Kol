@@ -409,6 +409,104 @@ func TestBuiltinFunctions(t *testing.T) {
 	}
 	runVmTests(t, tests)
 }
+func TestClosures(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+let newClosure = fun(a) {
+fun() { a; };
+};
+let closure = newClosure(99);
+closure();
+`,
+			expected: 99,
+		},
+		{
+			input: `
+let newAdder = fun(a, b) {
+fun(c) { a + b + c };
+};
+let adder = newAdder(1, 2);
+adder(8);
+`,
+			expected: 11,
+		},
+		{
+			input: `
+let newAdder = fun(a, b) {
+let c = a + b;
+fun(d) { c + d };
+};
+let adder = newAdder(1, 2);
+adder(8);
+`,
+			expected: 11,
+		},
+		{
+			input: `
+let newAdderOuter = fun(a, b) {
+let c = a + b;
+fun(d) {
+let e = d + c;
+fun(f) { e + f; };
+};
+};
+let newAdderInner = newAdderOuter(1, 2)
+let adder = newAdderInner(3);
+adder(8);
+`,
+			expected: 14,
+		},
+		{
+			input: `let a = 1;
+let newAdderOuter = fun(b) {
+fun(c) {
+fun(d) { a + b + c + d };
+};
+};
+let newAdderInner = newAdderOuter(2)
+let adder = newAdderInner(3);
+adder(8);
+`,
+			expected: 14,
+		},
+		{
+			input: `
+let newClosure = fun(a, b) {
+let one = fun() { a; };
+let two = fun() { b; };
+fun() { one() + two(); };
+};
+let closure = newClosure(9, 90);
+closure();
+`,
+			expected: 99,
+		},
+	}
+	runVmTests(t, tests)
+}
+func TestRecursiveFibonacci(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+let fibonacci = fun(x) {
+if (x == 0) {
+return 0;
+} else {
+if (x == 1) {
+return 1;
+} else {
+fibonacci(x - 1) + fibonacci(x - 2);
+}
+}
+};
+fibonacci(15);
+`,
+			expected: 610,
+		},
+	}
+	runVmTests(t, tests)
+}
 
 func runVmTests(t *testing.T, tests []vmTestCase) {
 	t.Helper()
