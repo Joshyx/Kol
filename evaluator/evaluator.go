@@ -51,6 +51,22 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 		return &object.ReturnValue{Value: val}
 	case *ast.LetStatement:
+		if env.HasValue(node.Name.Value) {
+			return newError("Variable %s can't be redefined", node.Name.Value)
+		}
+		val := Eval(node.Value, env)
+		if isError(val) {
+			return val
+		}
+		env.SetValue(node.Name.Value, object.Variable{Value: val, Mutable: node.Mutable})
+	case *ast.ReassignStatement:
+		value, existing := env.Get(node.Name.Value)
+		if !existing {
+			return newError("Variable %s isn't defined", node.Name.Value)
+		}
+		if !value.Mutable {
+			return newError("Variable %s isn't mutable", node.Name.Value)
+		}
 		val := Eval(node.Value, env)
 		if isError(val) {
 			return val
@@ -141,7 +157,7 @@ func evalIdentifier(
 	env *object.Environment,
 ) object.Object {
 	if val, ok := env.Get(node.Value); ok {
-		return val
+		return val.Value
 	}
 	if builtin, ok := builtins[node.Value]; ok {
 		return builtin

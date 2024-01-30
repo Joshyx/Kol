@@ -1,7 +1,7 @@
 package object
 
 func NewEnvironment() *Environment {
-	s := make(map[string]Object)
+	s := make(map[string]Variable)
 	return &Environment{store: s, outer: nil}
 }
 func NewEnclosedEnvironment(outer *Environment) *Environment {
@@ -10,12 +10,16 @@ func NewEnclosedEnvironment(outer *Environment) *Environment {
 	return env
 }
 
+type Variable struct {
+	Value   Object
+	Mutable bool
+}
 type Environment struct {
-	store map[string]Object
+	store map[string]Variable
 	outer *Environment
 }
 
-func (e *Environment) Get(name string) (Object, bool) {
+func (e *Environment) Get(name string) (Variable, bool) {
 	obj, ok := e.store[name]
 	if !ok && e.outer != nil {
 		obj, ok = e.outer.Get(name)
@@ -23,6 +27,14 @@ func (e *Environment) Get(name string) (Object, bool) {
 	return obj, ok
 }
 func (e *Environment) Set(name string, obj Object) Object {
-	e.store[name] = obj
+	e.store[name] = Variable{Value: obj, Mutable: e.store[name].Mutable}
 	return obj
+}
+func (e *Environment) SetValue(name string, val Variable) Object {
+	e.store[name] = val
+	return val.Value
+}
+func (e *Environment) HasValue(name string) bool {
+	_, ok := e.store[name]
+	return ok
 }

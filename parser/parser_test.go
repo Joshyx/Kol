@@ -12,10 +12,12 @@ func TestLetStatements(t *testing.T) {
 		input              string
 		expectedIdentifier string
 		expectedValue      interface{}
+		expectedMutable    bool
 	}{
-		{"let x = 5;", "x", 5},
-		{"let y = true;", "y", true},
-		{"let foobar = y;", "foobar", "y"},
+		{"let x = 5;", "x", 5, false},
+		{"let y = true;", "y", true, false},
+		{"let foobar = y;", "foobar", "y", false},
+		{"let mut foobar = y;", "foobar", "y", true},
 	}
 	for _, tt := range tests {
 		l := lexer.New(tt.input)
@@ -27,7 +29,7 @@ func TestLetStatements(t *testing.T) {
 				len(program.Statements))
 		}
 		stmt := program.Statements[0]
-		if !testLetStatement(t, stmt, tt.expectedIdentifier) {
+		if !testLetStatement(t, stmt, tt.expectedIdentifier, tt.expectedMutable) {
 			return
 		}
 		val := stmt.(*ast.LetStatement).Value
@@ -633,7 +635,7 @@ func TestCallExpressionParsing(t *testing.T) {
 	testInfixExpression(t, exp.Arguments[2], 4, "+", 5)
 }
 
-func testLetStatement(t *testing.T, s ast.Statement, name string) bool {
+func testLetStatement(t *testing.T, s ast.Statement, name string, mutable bool) bool {
 	if s.TokenLiteral() != "let" {
 		t.Errorf("s.TokenLiteral is not 'let'. got=%q", s.TokenLiteral())
 		return false
@@ -644,9 +646,12 @@ func testLetStatement(t *testing.T, s ast.Statement, name string) bool {
 		t.Errorf("s not *ast.LetStatement. got=%q", s)
 		return false
 	}
+	if letStmt.Mutable != mutable {
+		t.Errorf("letStmt.Mutable not '%t'. got=%t", mutable, letStmt.Mutable)
+	}
 
 	if letStmt.Name.Value != name {
-		t.Errorf("letStmt.Value npt '%s'. got=%s", name, letStmt.Name.Value)
+		t.Errorf("letStmt.Value not '%s'. got=%s", name, letStmt.Name.Value)
 		return false
 	}
 

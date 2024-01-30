@@ -123,7 +123,30 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return fmt.Errorf("unknown operator %s", node.Operator)
 		}
 	case *ast.LetStatement:
-		symbol := c.symbolTable.Define(node.Name.Value)
+		if c.symbolTable.HasValue(node.Name.Value) {
+			return fmt.Errorf("Variable %s is already defined", node.Name.Value)
+		}
+		symbol := c.symbolTable.Define(node.Name.Value, node.Mutable)
+		err := c.Compile(node.Value)
+		if err != nil {
+			return err
+		}
+
+		if symbol.Scope == GlobalScope {
+			c.emit(code.OpSetGlobal, symbol.Index)
+		} else {
+			c.emit(code.OpSetLocal, symbol.Index)
+		}
+	case *ast.ReassignStatement:
+		symbol, ok := c.symbolTable.Resolve(node.Name.Value)
+
+		if !ok {
+			return fmt.Errorf("Variable %s is not defined", node.Name.Value)
+		}
+		if !symbol.Mutable {
+			return fmt.Errorf("Variable %s is not mutable", node.Name.Value)
+		}
+
 		err := c.Compile(node.Value)
 		if err != nil {
 			return err
@@ -185,7 +208,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 		c.enterScope()
 
 		for _, p := range node.Parameters {
-			c.symbolTable.Define(p.Value)
+			c.symbolTable.Define(p.Value, false)
 		}
 
 		err := c.Compile(node.Body)

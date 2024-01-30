@@ -290,6 +290,7 @@ func TestLetStatements(t *testing.T) {
 		{"let a = 5 * 5; a;", 25},
 		{"let a = 5; let b = a; b;", 5},
 		{"let a = 5; let b = a; let c = a + b + 5; c;", 15},
+		{"let mut a = 5; let b = a + 4; a = b + a; a;", 14},
 	}
 	for _, tt := range tests {
 		testIntegerObject(t, testEval(tt.input), tt.expected)
@@ -349,6 +350,18 @@ return 1;
 		{
 			"foobar",
 			"identifier not found: foobar",
+		},
+		{
+			"let x = 5; let x = 4;",
+			"Variable x can't be redefined",
+		},
+		{
+			"let x = 5; x = 4;",
+			"Variable x isn't mutable",
+		},
+		{
+			"x = 4;",
+			"Variable x isn't defined",
 		},
 	}
 	for i, tt := range tests {
