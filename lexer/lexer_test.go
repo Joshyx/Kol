@@ -30,6 +30,7 @@ if (5 < 10) {
 "foo bar"
 [1, 2]; // This comment should be ignored
 {"foo": "bar"}
+123.2343453
 `
 
 	tests := []struct {
@@ -122,6 +123,7 @@ if (5 < 10) {
 		{token.COLON, ":"},
 		{token.STRING, "bar"},
 		{token.RBRACE, "}"},
+		{token.FLOAT, "123.2343453"},
 		{token.EOF, ""},
 	}
 

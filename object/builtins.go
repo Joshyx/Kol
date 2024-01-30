@@ -65,11 +65,34 @@ var Builtins = []struct {
 				result, err := strconv.ParseInt(arg.Value, 10, 64)
 
 				if err != nil {
-					return newError("Could not parse '%s' to a string", arg.Value)
+					return newError("Could not parse '%s' to a int", arg.Value)
 				}
 				return &Integer{Value: result}
 			default:
 				return newError("argument to `int` not supported, got %s",
+					args[0].Type())
+			}
+		},
+		},
+	},
+	{
+		"float",
+		&Builtin{func(args ...Object) Object {
+			if len(args) != 1 {
+				return newError("wrong number of arguments. got=%d, want=1",
+					len(args))
+			}
+
+			switch arg := args[0].(type) {
+			case *String:
+				result, err := strconv.ParseFloat(arg.Value, 10)
+
+				if err != nil {
+					return newError("Could not parse '%s' to a float", arg.Value)
+				}
+				return &Float{Value: result}
+			default:
+				return newError("argument to `float` not supported, got %s",
 					args[0].Type())
 			}
 		},

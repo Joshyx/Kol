@@ -14,6 +14,7 @@ type BuiltinFunction func(args ...Object) Object
 
 const (
 	INTEGER_OBJ           = "INTEGER"
+	FLOAT_OBJ             = "FLOAT"
 	BOOLEAN_OBJ           = "BOOLEAN"
 	NULL_OBJ              = "NULL"
 	RETURN_VALUE_OBJ      = "RETURN_VALUE"
@@ -41,6 +42,26 @@ type Integer struct {
 
 func (i *Integer) Inspect() string  { return fmt.Sprintf("%d", i.Value) }
 func (i *Integer) Type() ObjectType { return INTEGER_OBJ }
+
+type Float struct {
+	Value float64
+}
+
+func (f *Float) Inspect() string  { return fmt.Sprintf("%v", f.Value) }
+func (f *Float) Type() ObjectType { return FLOAT_OBJ }
+
+func IsNumber(object Object) bool {
+	return object.Type() == INTEGER_OBJ || object.Type() == FLOAT_OBJ
+}
+func GetNumber(obj Object) float64 {
+	if obj.Type() == INTEGER_OBJ {
+		return float64(obj.(*Integer).Value)
+	} else if obj.Type() == FLOAT_OBJ {
+		return obj.(*Float).Value
+	} else {
+		return 0
+	}
+}
 
 type Boolean struct {
 	Value bool

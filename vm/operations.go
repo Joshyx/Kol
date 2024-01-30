@@ -9,39 +9,47 @@ import (
 func (vm *VM) executeBinaryOperation(op code.Opcode) error {
 	right := vm.pop()
 	left := vm.pop()
-	leftType := left.Type()
-	rightType := right.Type()
 
 	switch {
-	case leftType == object.INTEGER_OBJ && rightType == object.INTEGER_OBJ:
-		return vm.executeBinaryIntegerOperation(op, left, right)
-	case leftType == object.STRING_OBJ && rightType == object.STRING_OBJ:
+	case object.IsNumber(left) && object.IsNumber(right):
+		return vm.executeBinaryNumberOperation(op, left, right)
+	case right.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
 		return vm.executeBinaryStringOperation(op, left, right)
 	default:
 		return fmt.Errorf("unsupported types for binary operation: %s %s",
-			leftType, rightType)
+			left.Type(), right.Type())
 	}
 }
-func (vm *VM) executeBinaryIntegerOperation(
+func (vm *VM) executeBinaryNumberOperation(
 	op code.Opcode,
 	left, right object.Object,
 ) error {
-	leftValue := left.(*object.Integer).Value
-	rightValue := right.(*object.Integer).Value
-	var result int64
+	leftValue := object.GetNumber(left)
+	rightValue := object.GetNumber(right)
 	switch op {
 	case code.OpAdd:
-		result = leftValue + rightValue
+		if left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ {
+			return vm.push(&object.Integer{Value: int64(leftValue + rightValue)})
+		} else {
+			return vm.push(&object.Float{Value: leftValue + rightValue})
+		}
 	case code.OpSub:
-		result = leftValue - rightValue
+		if left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ {
+			return vm.push(&object.Integer{Value: int64(leftValue - rightValue)})
+		} else {
+			return vm.push(&object.Float{Value: leftValue - rightValue})
+		}
 	case code.OpMul:
-		result = leftValue * rightValue
+		if left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ {
+			return vm.push(&object.Integer{Value: int64(leftValue * rightValue)})
+		} else {
+			return vm.push(&object.Float{Value: leftValue * rightValue})
+		}
 	case code.OpDiv:
-		result = leftValue / rightValue
+		return vm.push(&object.Float{Value: leftValue / rightValue})
 	default:
 		return fmt.Errorf("unknown integer operator: %d", op)
 	}
-	return vm.push(&object.Integer{Value: result})
 }
 func (vm *VM) executeBinaryStringOperation(
 	op code.Opcode,
@@ -56,18 +64,24 @@ func (vm *VM) executeBinaryStringOperation(
 }
 func (vm *VM) executeMinusOperator() error {
 	operand := vm.pop()
-	if operand.Type() != object.INTEGER_OBJ {
+	switch operand.Type() {
+	case object.INTEGER_OBJ:
+		value := operand.(*object.Integer).Value
+		return vm.push(&object.Integer{Value: -value})
+	case object.FLOAT_OBJ:
+		value := operand.(*object.Float).Value
+		return vm.push(&object.Float{Value: -value})
+	default:
 		return fmt.Errorf("unsupported type for negation: %s", operand.Type())
 	}
-	value := operand.(*object.Integer).Value
-	return vm.push(&object.Integer{Value: -value})
 }
 func (vm *VM) executeComparison(op code.Opcode) error {
 	right := vm.pop()
 	left := vm.pop()
-	if left.Type() == object.INTEGER_OBJ || right.Type() == object.INTEGER_OBJ {
-		return vm.executeIntegerComparison(op, left, right)
+	if object.IsNumber(left) && object.IsNumber(right) {
+		return vm.executeNumberComparison(op, left, right)
 	}
+
 	switch op {
 	case code.OpEqual:
 		return vm.push(nativeBoolToBooleanObject(right == left))
@@ -89,12 +103,12 @@ func (vm *VM) executeBangOperator() error {
 		return fmt.Errorf("Can't convert %s to a boolean", operand.Type())
 	}
 }
-func (vm *VM) executeIntegerComparison(
+func (vm *VM) executeNumberComparison(
 	op code.Opcode,
 	left, right object.Object,
 ) error {
-	leftValue := left.(*object.Integer).Value
-	rightValue := right.(*object.Integer).Value
+	leftValue := object.GetNumber(left)
+	rightValue := object.GetNumber(right)
 	switch op {
 	case code.OpEqual:
 		return vm.push(nativeBoolToBooleanObject(rightValue == leftValue))

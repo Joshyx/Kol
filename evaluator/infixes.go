@@ -9,8 +9,8 @@ func evalInfixExpression(
 	left, right object.Object,
 ) object.Object {
 	switch {
-	case left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ:
-		return evalIntegerInfixExpression(operator, left, right)
+	case object.IsNumber(left) && object.IsNumber(right):
+		return evalNumberInfixExpression(operator, left, right)
 	case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
 		return evalStringInfixExpression(operator, left, right)
 	case operator == "==":
@@ -26,21 +26,34 @@ func evalInfixExpression(
 	}
 }
 
-func evalIntegerInfixExpression(
+func evalNumberInfixExpression(
 	operator string,
 	left, right object.Object,
 ) object.Object {
-	leftVal := left.(*object.Integer).Value
-	rightVal := right.(*object.Integer).Value
+	leftVal := object.GetNumber(left)
+	rightVal := object.GetNumber(right)
+
 	switch operator {
 	case "+":
-		return &object.Integer{Value: leftVal + rightVal}
+		if left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ {
+			return &object.Integer{Value: int64(leftVal + rightVal)}
+		} else {
+			return &object.Float{Value: leftVal + rightVal}
+		}
 	case "-":
-		return &object.Integer{Value: leftVal - rightVal}
+		if left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ {
+			return &object.Integer{Value: int64(leftVal - rightVal)}
+		} else {
+			return &object.Float{Value: leftVal - rightVal}
+		}
 	case "*":
-		return &object.Integer{Value: leftVal * rightVal}
+		if left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ {
+			return &object.Integer{Value: int64(leftVal * rightVal)}
+		} else {
+			return &object.Float{Value: leftVal * rightVal}
+		}
 	case "/":
-		return &object.Integer{Value: leftVal / rightVal}
+		return &object.Float{Value: leftVal / rightVal}
 	case "<":
 		return nativeBoolToBooleanObject(leftVal < rightVal)
 	case ">":

@@ -78,6 +78,68 @@ func TestIntegerArithmetic(t *testing.T) {
 	}
 	runCompilerTests(t, tests)
 }
+func TestFloatArithmetic(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input:             "1.2 + 2.0",
+			expectedConstants: []interface{}{1.2, 2.0},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpAdd),
+				code.Make(code.OpPop),
+			},
+		}, {
+			input:             "1.0; 2.3",
+			expectedConstants: []interface{}{1.0, 2.3},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpPop),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input:             "1.00345 - 2.123",
+			expectedConstants: []interface{}{1.00345, 2.123},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpSub),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input:             "1.123 * 2345.45",
+			expectedConstants: []interface{}{1.123, 2345.45},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpMul),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input:             "2 / 1.12",
+			expectedConstants: []interface{}{2, 1.12},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpDiv),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input:             "-1.123",
+			expectedConstants: []interface{}{1.123},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpMinus),
+				code.Make(code.OpPop)},
+		},
+	}
+	runCompilerTests(t, tests)
+}
 func TestBooleanExpressions(t *testing.T) {
 	tests := []compilerTestCase{
 		{
@@ -724,7 +786,7 @@ push([], 1);
 				code.Make(code.OpArray, 0),
 				code.Make(code.OpCall, 1),
 				code.Make(code.OpPop),
-				code.Make(code.OpGetBuiltin, 4),
+				code.Make(code.OpGetBuiltin, 5),
 				code.Make(code.OpArray, 0),
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpCall, 2),
