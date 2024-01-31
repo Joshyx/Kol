@@ -35,6 +35,9 @@ func (p *Parser) parseBooleanLiteral() ast.Expression {
 }
 
 func (p *Parser) parseFunctionLiteral() ast.Expression {
+	if p.peekTokenIs(token.IDENT) {
+		return nil
+	}
 	lit := &ast.FunctionLiteral{Token: p.curToken}
 	if !p.expectPeek(token.LPAREN) {
 		return nil
@@ -45,6 +48,27 @@ func (p *Parser) parseFunctionLiteral() ast.Expression {
 	}
 	lit.Body = p.parseBlockStatement()
 	return lit
+}
+func (p *Parser) parseFunction() ast.Statement {
+	lit := &ast.FunctionLiteral{Token: p.curToken}
+	if !p.expectPeek(token.IDENT) {
+		return nil
+	}
+	ident := p.curToken
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+	lit.Parameters = p.parseFunctionParameters()
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+	lit.Body = p.parseBlockStatement()
+	return &ast.LetStatement{
+		Token:   token.Token{Type: token.LET, Literal: "let"},
+		Name:    &ast.Identifier{Token: ident, Value: ident.Literal},
+		Value:   lit,
+		Mutable: false,
+	}
 }
 
 func (p *Parser) parseFunctionParameters() []*ast.Identifier {

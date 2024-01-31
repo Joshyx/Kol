@@ -567,6 +567,17 @@ func TestIfElseExpression(t *testing.T) {
 	}
 }
 
+func TestFunctionParsing(t *testing.T) {
+	input := "fun add(a, b) { a + b; }"
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Body does not contain %d statements. got=%d\n",
+			1, len(program.Statements))
+	}
+}
 func TestFunctionLiteralParsing(t *testing.T) {
 	input := `fun(x, y) { x + y; }`
 	l := lexer.New(input)

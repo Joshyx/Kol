@@ -124,6 +124,11 @@ func (p *Parser) parseStatement() ast.Statement {
 		return p.parseLetStatement()
 	case token.RETURN:
 		return p.parseReturnStatement()
+	case token.FUNCTION:
+		if !p.peekTokenIs(token.IDENT) {
+			return p.parseExpressionStatement()
+		}
+		return p.parseFunction()
 	case token.IDENT:
 		if p.peekTokenIs(token.ASSIGN) {
 			return p.parseReassignStatement()
