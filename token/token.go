@@ -3,12 +3,17 @@ package token
 type TokenType string
 
 type Token struct {
-	Type    TokenType
-	Literal string
+	Type     TokenType
+	Literal  string
+	Position Position
+}
+type Position struct {
+	Line int
+	Char int
 }
 
-func New(tokenType TokenType, ch byte) Token {
-	return Token{Type: tokenType, Literal: string(ch)}
+func New(tokenType TokenType, ch byte, pos Position) Token {
+	return Token{Type: tokenType, Literal: string(ch), Position: pos}
 }
 
 const (
