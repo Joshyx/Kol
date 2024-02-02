@@ -1,8 +1,14 @@
 let mut i = 0
-let x = for(true) {
+let x = for true {
     break 5;
     i;
 } else {
     6;
 }
 println(x)
+
+if (123 > 123 * 12 {
+    println(2)
+} else {
+    println(3)
+}
