@@ -5,6 +5,7 @@ import (
 	"kol/ast"
 	"kol/code"
 	"kol/object"
+	"kol/token"
 	"sort"
 )
 
@@ -107,7 +108,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 		case "!=":
 			c.emit(code.OpNotEqual)
 		default:
-			return fmt.Errorf("unknown operator %s", node.Operator)
+			return createError("unknown operator %s", node.GetPosition(), node.Operator)
 		}
 	case *ast.PrefixExpression:
 		err := c.Compile(node.Right)
@@ -120,11 +121,11 @@ func (c *Compiler) Compile(node ast.Node) error {
 		case "-":
 			c.emit(code.OpMinus)
 		default:
-			return fmt.Errorf("unknown operator %s", node.Operator)
+			return createError("unknown operator %s", node.GetPosition(), node.Operator)
 		}
 	case *ast.LetStatement:
 		if c.symbolTable.HasValue(node.Name.Value) {
-			return fmt.Errorf("Variable %s is already defined", node.Name.Value)
+			return createError("Variable %s is already defined", node.GetPosition(), node.Name.Value)
 		}
 		symbol := c.symbolTable.Define(node.Name.Value, node.Mutable)
 		err := c.Compile(node.Value)
@@ -141,10 +142,10 @@ func (c *Compiler) Compile(node ast.Node) error {
 		symbol, ok := c.symbolTable.Resolve(node.Name.Value)
 
 		if !ok {
-			return fmt.Errorf("Variable %s is not defined", node.Name.Value)
+			return createError("Variable %s is not defined", node.GetPosition(), node.Name.Value)
 		}
 		if !symbol.Mutable {
-			return fmt.Errorf("Variable %s is not mutable", node.Name.Value)
+			return createError("Variable %s is not mutable", node.GetPosition(), node.Name.Value)
 		}
 
 		err := c.Compile(node.Value)
@@ -160,7 +161,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 	case *ast.Identifier:
 		symbol, ok := c.symbolTable.Resolve(node.Value)
 		if !ok {
-			return fmt.Errorf("undefined variable %s", node.Value)
+			return createError("undefined variable %s", node.GetPosition(), node.Value)
 		}
 
 		c.loadSymbol(symbol)
@@ -289,6 +290,8 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 		c.emit(code.OpReturnValue)
+	case *ast.BreakStatement:
+		return createError("Break statements are not supported in the compiled version", node.GetPosition())
 	case *ast.BooleanLiteral:
 		if node.Value {
 			c.emit(code.OpTrue)
@@ -413,4 +416,8 @@ func (c *Compiler) loadSymbol(s Symbol) {
 	case BuiltinScope:
 		c.emit(code.OpGetBuiltin, s.Index)
 	}
+}
+func createError(msg string, pos token.Position, a ...interface{}) error {
+	newMsg := fmt.Sprintf(msg, a...)
+	return fmt.Errorf("Error at %d:%d: %s", pos.Line, pos.Column, newMsg)
 }

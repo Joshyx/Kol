@@ -46,6 +46,7 @@ const (
 
 	OpCall
 	OpReturnValue
+	OpBreakValue
 	OpReturn
 	OpClosure
 
@@ -93,6 +94,7 @@ var definitions = map[Opcode]*Definition{
 	OpCall:        {"OpCall", []int{1}},
 	OpReturnValue: {"OpReturnValue", []int{}},
 	OpReturn:      {"OpReturn", []int{}},
+	OpBreakValue:  {"OpBreakValue", []int{}},
 	OpClosure:     {"OpClosure", []int{2, 1}},
 
 	OpGetBuiltin: {"OpGetBuiltin", []int{1}},

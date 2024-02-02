@@ -73,6 +73,24 @@ func (rs *ReturnStatement) String() string {
 }
 func (rs *ReturnStatement) GetPosition() token.Position { return rs.Token.Position }
 
+type BreakStatement struct {
+	Token      token.Token
+	BreakValue Expression
+}
+
+func (bs *BreakStatement) statementNode()       {}
+func (bs *BreakStatement) TokenLiteral() string { return bs.Token.Literal }
+func (bs *BreakStatement) String() string {
+	var out bytes.Buffer
+	out.WriteString(bs.TokenLiteral() + " ")
+	if bs.BreakValue != nil {
+		out.WriteString(bs.BreakValue.String())
+	}
+	out.WriteString(";")
+	return out.String()
+}
+func (bs *BreakStatement) GetPosition() token.Position { return bs.Token.Position }
+
 type ExpressionStatement struct {
 	Token      token.Token // the first token of the expression
 	Expression Expression

@@ -66,6 +66,19 @@ func (p *Parser) parseReturnStatement() ast.Statement {
 
 	return stmt
 }
+func (p *Parser) parseBreakStatement() ast.Statement {
+	stmt := &ast.BreakStatement{Token: p.curToken}
+
+	p.nextToken()
+
+	stmt.BreakValue = p.parseExpression(LOWEST)
+
+	for !p.curTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+
+	return stmt
+}
 
 func (p *Parser) parseBlockStatement() *ast.BlockStatement {
 	block := &ast.BlockStatement{Token: p.curToken}

@@ -55,6 +55,12 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return val
 		}
 		return &object.ReturnValue{Value: val}
+	case *ast.BreakStatement:
+		val := Eval(node.BreakValue, env)
+		if isError(val) {
+			return val
+		}
+		return &object.BreakValue{Value: val}
 	case *ast.LetStatement:
 		if env.HasValue(node.Name.Value) {
 			return newError("Variable %s can't be redefined", node.GetPosition(), node.Name.Value)
@@ -135,7 +141,7 @@ func evalBlockStatement(block *ast.BlockStatement, env *object.Environment) obje
 		if result != nil {
 			rt := result.Type()
 
-			if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ {
+			if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ || rt == object.BREAK_VALUE_OBJECT {
 				return result
 			}
 		}
