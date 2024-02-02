@@ -38,19 +38,53 @@ func (p *Parser) parseReassignStatement() ast.Statement {
 
 	stmt.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 
-	if !p.expectPeek(token.ASSIGN) {
-		return nil
-	}
-
+	p.nextToken()
+	tok := p.curToken
 	p.nextToken()
 
-	stmt.Value = p.parseExpression(LOWEST)
+	stmt.Value = getValue(*stmt.Name, tok, p.parseExpression(LOWEST))
 
 	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}
 
 	return stmt
+}
+func getValue(ident ast.Identifier, tok token.Token, exp ast.Expression) ast.Expression {
+	switch tok.Type {
+	case token.ASSIGN:
+		return exp
+	case token.PLUSASS:
+		return &ast.InfixExpression{
+			Token:    token.Token{Type: token.PLUS, Literal: "+", Position: tok.Position},
+			Left:     &ident,
+			Right:    exp,
+			Operator: "+",
+		}
+	case token.MINASS:
+		return &ast.InfixExpression{
+			Token:    token.Token{Type: token.MINUS, Literal: "+", Position: tok.Position},
+			Left:     &ident,
+			Right:    exp,
+			Operator: "-",
+		}
+	case token.MULTASS:
+		return &ast.InfixExpression{
+			Token:    token.Token{Type: token.ASTERISK, Literal: "+", Position: tok.Position},
+			Left:     &ident,
+			Right:    exp,
+			Operator: "*",
+		}
+	case token.DIVASS:
+		return &ast.InfixExpression{
+			Token:    token.Token{Type: token.SLASH, Literal: "/", Position: tok.Position},
+			Left:     &ident,
+			Right:    exp,
+			Operator: "/",
+		}
+	default:
+		return nil
+	}
 }
 
 func (p *Parser) parseReturnStatement() ast.Statement {

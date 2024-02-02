@@ -34,6 +34,7 @@ if (5 < 10) {
 123.2343453
 for(true)
 break
++= -= *= /= %
 `
 
 	tests := []struct {
@@ -136,7 +137,12 @@ break
 		{token.TRUE, "true", 26, 5},
 		{token.RPAREN, ")", 26, 9},
 		{token.BREAK, "break", 27, 1},
-		{token.EOF, "", 28, 1},
+		{token.PLUSASS, "+=", 28, 1},
+		{token.MINASS, "-=", 28, 4},
+		{token.MULTASS, "*=", 28, 7},
+		{token.DIVASS, "/=", 28, 10},
+		{token.PERCENT, "%", 28, 13},
+		{token.EOF, "", 29, 1},
 	}
 
 	l := New(input)

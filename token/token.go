@@ -31,6 +31,12 @@ const (
 	BANG     = "!"
 	ASTERISK = "*"
 	SLASH    = "/"
+	PERCENT  = "%"
+
+	PLUSASS = "+="
+	MINASS  = "-="
+	MULTASS = "*="
+	DIVASS  = "/="
 
 	EQ     = "=="
 	NOT_EQ = "!="

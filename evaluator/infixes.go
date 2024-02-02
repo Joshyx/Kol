@@ -55,6 +55,12 @@ func evalNumberInfixExpression(
 		} else {
 			return &object.Float{Value: leftVal * rightVal}
 		}
+	case "%":
+		if left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ {
+			return &object.Integer{Value: int64(leftVal) % int64(rightVal)}
+		} else {
+			return newError("Can't take the remainder of non-integers", pos)
+		}
 	case "/":
 		return &object.Float{Value: leftVal / rightVal}
 	case "<":

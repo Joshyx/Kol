@@ -74,9 +74,29 @@ func (l *Lexer) NextToken() token.Token {
 	case ')':
 		tok = l.getToken(token.RPAREN, l.ch)
 	case '+':
-		tok = l.getToken(token.PLUS, l.ch)
+		if l.peekChar() == '=' {
+			ch := l.ch
+			l.readChar()
+			tok = token.Token{
+				Type:     token.PLUSASS,
+				Literal:  string(ch) + string(l.ch),
+				Position: token.Position{Line: l.curLine, Column: l.curChar - 1},
+			}
+		} else {
+			tok = l.getToken(token.PLUS, l.ch)
+		}
 	case '-':
-		tok = l.getToken(token.MINUS, l.ch)
+		if l.peekChar() == '=' {
+			ch := l.ch
+			l.readChar()
+			tok = token.Token{
+				Type:     token.MINASS,
+				Literal:  string(ch) + string(l.ch),
+				Position: token.Position{Line: l.curLine, Column: l.curChar - 1},
+			}
+		} else {
+			tok = l.getToken(token.MINUS, l.ch)
+		}
 	case '!':
 		if l.peekChar() == '=' {
 			ch := l.ch
@@ -90,9 +110,31 @@ func (l *Lexer) NextToken() token.Token {
 			tok = l.getToken(token.BANG, l.ch)
 		}
 	case '/':
-		tok = l.getToken(token.SLASH, l.ch)
+		if l.peekChar() == '=' {
+			ch := l.ch
+			l.readChar()
+			tok = token.Token{
+				Type:     token.DIVASS,
+				Literal:  string(ch) + string(l.ch),
+				Position: token.Position{Line: l.curLine, Column: l.curChar - 1},
+			}
+		} else {
+			tok = l.getToken(token.SLASH, l.ch)
+		}
 	case '*':
-		tok = l.getToken(token.ASTERISK, l.ch)
+		if l.peekChar() == '=' {
+			ch := l.ch
+			l.readChar()
+			tok = token.Token{
+				Type:     token.MULTASS,
+				Literal:  string(ch) + string(l.ch),
+				Position: token.Position{Line: l.curLine, Column: l.curChar - 1},
+			}
+		} else {
+			tok = l.getToken(token.ASTERISK, l.ch)
+		}
+	case '%':
+		tok = l.getToken(token.PERCENT, l.ch)
 	case '<':
 		if l.peekChar() == '=' {
 			ch := l.ch

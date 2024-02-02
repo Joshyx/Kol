@@ -27,6 +27,7 @@ var precedences = map[token.TokenType]int{
 	token.GT:       LESSGREATER,
 	token.PLUS:     SUM,
 	token.MINUS:    SUM,
+	token.PERCENT:  PRODUCT,
 	token.SLASH:    PRODUCT,
 	token.ASTERISK: PRODUCT,
 	token.LPAREN:   CALL,
@@ -73,6 +74,11 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.MINUS, p.parseInfixExpression)
 	p.registerInfix(token.SLASH, p.parseInfixExpression)
 	p.registerInfix(token.ASTERISK, p.parseInfixExpression)
+	p.registerInfix(token.PERCENT, p.parseInfixExpression)
+	p.registerInfix(token.PLUSASS, p.parseInfixExpression)
+	p.registerInfix(token.MINASS, p.parseInfixExpression)
+	p.registerInfix(token.MULTASS, p.parseInfixExpression)
+	p.registerInfix(token.DIVASS, p.parseInfixExpression)
 	p.registerInfix(token.EQ, p.parseInfixExpression)
 	p.registerInfix(token.NOT_EQ, p.parseInfixExpression)
 	p.registerInfix(token.LTEQ, p.parseInfixExpression)
@@ -133,7 +139,7 @@ func (p *Parser) parseStatement() ast.Statement {
 		}
 		return p.parseFunction()
 	case token.IDENT:
-		if p.peekTokenIs(token.ASSIGN) {
+		if p.peekTokenIs(token.ASSIGN) || p.peekTokenIs(token.PLUSASS) || p.peekTokenIs(token.MINASS) || p.peekTokenIs(token.MULTASS) || p.peekTokenIs(token.DIVASS) {
 			return p.parseReassignStatement()
 		}
 		return p.parseExpressionStatement()
