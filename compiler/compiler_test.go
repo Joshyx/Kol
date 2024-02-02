@@ -299,6 +299,29 @@ if (true) { 10 } else { 20 }; 3333;
 				code.Make(code.OpPop),
 			},
 		},
+		{
+			input: `
+for (true) { 10 }; 3333;
+`,
+			expectedConstants: []interface{}{10, 3333},
+			expectedInstructions: []code.Instructions{
+				// 0000
+				code.Make(code.OpTrue),
+				// 0001
+				code.Make(code.OpJumpNotTrue, 10),
+				// 0004
+				code.Make(code.OpConstant, 0),
+				// 0007
+				code.Make(code.OpJump, 0),
+				code.Make(code.OpNull),
+				// 0011
+				code.Make(code.OpPop),
+				// 0012
+				code.Make(code.OpConstant, 1),
+				// 0015
+				code.Make(code.OpPop),
+			},
+		},
 	}
 	runCompilerTests(t, tests)
 }

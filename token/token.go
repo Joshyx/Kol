@@ -58,6 +58,8 @@ const (
 	FALSE    = "FALSE"
 	IF       = "IF"
 	ELSE     = "ELSE"
+	FOR      = "FOR"
+	BREAK    = "BREAK"
 	RETURN   = "RETURN"
 	STRUCT   = "STRUCT"
 )
@@ -70,6 +72,8 @@ var keywords = map[string]TokenType{
 	"false":  FALSE,
 	"if":     IF,
 	"else":   ELSE,
+	"for":    FOR,
+	"break":  BREAK,
 	"return": RETURN,
 	"struct": STRUCT,
 }

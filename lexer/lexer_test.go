@@ -32,6 +32,8 @@ if (5 < 10) {
 [1, 2]; // This comment should be ignored
 {"foo": "bar"}
 123.2343453
+for(true)
+break
 `
 
 	tests := []struct {
@@ -129,7 +131,12 @@ if (5 < 10) {
 		{token.STRING, "bar", 24, 9},
 		{token.RBRACE, "}", 24, 14},
 		{token.FLOAT, "123.2343453", 25, 1},
-		{token.EOF, "", 26, 1},
+		{token.FOR, "for", 26, 1},
+		{token.LPAREN, "(", 26, 4},
+		{token.TRUE, "true", 26, 5},
+		{token.RPAREN, ")", 26, 9},
+		{token.BREAK, "break", 27, 1},
+		{token.EOF, "", 28, 1},
 	}
 
 	l := New(input)

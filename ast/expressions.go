@@ -72,6 +72,29 @@ func (ie *IfExpression) String() string {
 }
 func (ie *IfExpression) GetPosition() token.Position { return ie.Token.Position }
 
+type ForExpression struct {
+	Token       token.Token // The 'for' token
+	Condition   Expression
+	Consequence *BlockStatement
+	Alternative *BlockStatement
+}
+
+func (fe *ForExpression) expressionNode()      {}
+func (fe *ForExpression) TokenLiteral() string { return fe.Token.Literal }
+func (fe *ForExpression) String() string {
+	var out bytes.Buffer
+	out.WriteString("for")
+	out.WriteString(fe.Condition.String())
+	out.WriteString(" ")
+	out.WriteString(fe.Consequence.String())
+	if fe.Alternative != nil {
+		out.WriteString("else ")
+		out.WriteString(fe.Alternative.String())
+	}
+	return out.String()
+}
+func (fe *ForExpression) GetPosition() token.Position { return fe.Token.Position }
+
 type CallExpression struct {
 	Token    token.Token // The '(' token
 	Function Expression

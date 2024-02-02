@@ -197,6 +197,40 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 		afterAlternativePos := len(c.currentInstructions())
 		c.changeOperand(jumpPos, afterAlternativePos)
+	case *ast.ForExpression:
+		beforeJumpPos := len(c.currentInstructions())
+		err := c.Compile(node.Condition)
+		if err != nil {
+			return err
+		}
+
+		jumpNotTruePos := c.emit(code.OpJumpNotTrue, 9999)
+
+		err = c.Compile(node.Consequence)
+		if err != nil {
+			return err
+		}
+
+		if c.lastInstructionIs(code.OpPop) {
+			c.removeLastPop()
+		}
+
+		c.emit(code.OpJump, beforeJumpPos)
+
+		afterConsequencePos := len(c.currentInstructions())
+		c.changeOperand(jumpNotTruePos, afterConsequencePos)
+
+		if node.Alternative == nil {
+			c.emit(code.OpNull)
+		} else {
+			err := c.Compile(node.Alternative)
+			if err != nil {
+				return err
+			}
+			if c.lastInstructionIs(code.OpPop) {
+				c.removeLastPop()
+			}
+		}
 	case *ast.BlockStatement:
 		for _, s := range node.Statements {
 			err := c.Compile(s)
