@@ -15,7 +15,7 @@ func (vm *VM) StackTop() object.Object {
 }
 
 func (vm *VM) push(o object.Object) error {
-	if vm.sp > StackSize {
+	if vm.sp >= StackSize {
 		return fmt.Errorf("stack overflow")
 	}
 

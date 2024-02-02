@@ -71,16 +71,19 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 		env.SetValue(node.Name.Value, object.Variable{Value: val, Mutable: node.Mutable})
 	case *ast.ReassignStatement:
-		value, existing := env.Get(node.Name.Value)
+		prevVar, existing := env.Get(node.Name.Value)
 		if !existing {
 			return newError("Variable %s isn't defined", node.GetPosition(), node.Name.Value)
 		}
-		if !value.Mutable {
+		if !prevVar.Mutable {
 			return newError("Variable %s isn't mutable", node.GetPosition(), node.Name.Value)
 		}
 		val := Eval(node.Value, env)
 		if isError(val) {
 			return val
+		}
+		if val.Type() != prevVar.Value.Type() {
+			return newError("Can't change type of variable from %s to %s", node.GetPosition(), prevVar.Value.Type(), val.Type())
 		}
 		env.Set(node.Name.Value, val)
 	case *ast.Identifier:

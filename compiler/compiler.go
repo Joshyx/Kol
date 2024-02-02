@@ -155,6 +155,8 @@ func (c *Compiler) Compile(node ast.Node) error {
 
 		if symbol.Scope == GlobalScope {
 			c.emit(code.OpSetGlobal, symbol.Index)
+		} else if symbol.Scope == FreeScope {
+			c.emit(code.OpSetFree, symbol.Index)
 		} else {
 			c.emit(code.OpSetLocal, symbol.Index)
 		}

@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"fmt"
 	"kol/code"
 	"kol/compiler"
 	"kol/object"
@@ -110,7 +111,12 @@ func (vm *VM) Run() error {
 		case code.OpSetGlobal:
 			globalIndex := code.ReadUint16(ins[ip+1:])
 			vm.currentFrame().ip += 2
-			vm.globals[globalIndex] = vm.pop()
+
+			newVal := vm.pop()
+			if vm.globals[globalIndex] != nil && newVal.Type() != vm.globals[globalIndex].Type() {
+				return fmt.Errorf("Type Error: Can't convert %s to %s", vm.globals[globalIndex].Type(), newVal.Type())
+			}
+			vm.globals[globalIndex] = newVal
 		case code.OpGetGlobal:
 			globalIndex := code.ReadUint16(ins[ip+1:])
 			vm.currentFrame().ip += 2
@@ -122,7 +128,13 @@ func (vm *VM) Run() error {
 			localIndex := code.ReadUint8(ins[ip+1:])
 			vm.currentFrame().ip += 1
 			frame := vm.currentFrame()
-			vm.stack[frame.basePointer+int(localIndex)] = vm.pop()
+
+			pos := frame.basePointer + int(localIndex)
+			newVal := vm.pop()
+			if vm.stack[pos] != nil && newVal.Type() != vm.stack[pos].Type() {
+				return fmt.Errorf("Type Error: Can't convert %s to %s", vm.stack[pos].Type(), newVal.Type())
+			}
+			vm.stack[pos] = newVal
 		case code.OpGetLocal:
 			localIndex := code.ReadUint8(ins[ip+1:])
 			vm.currentFrame().ip += 1
@@ -131,6 +143,16 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
+		case code.OpSetFree:
+			freeIndex := code.ReadUint8(ins[ip+1:])
+			vm.currentFrame().ip += 1
+			currentClosure := vm.currentFrame().cl
+
+			newVal := vm.pop()
+			if currentClosure.Free[freeIndex] != nil && newVal.Type() != currentClosure.Free[freeIndex].Type() {
+				return fmt.Errorf("Type Error: Can't convert %s to %s", currentClosure.Free[freeIndex].Type(), newVal.Type())
+			}
+			currentClosure.Free[freeIndex] = newVal
 		case code.OpGetFree:
 			freeIndex := code.ReadUint8(ins[ip+1:])
 			vm.currentFrame().ip += 1

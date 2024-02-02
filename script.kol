@@ -1,14 +1,11 @@
-let mut i = 0
-let x = for true {
-    break 5;
-    i;
-} else {
-    6;
+fun adder() {
+    let mut i = 0;
+    return fun() {
+        i = true;
+        return i;
+    };
 }
-println(x)
-
-if (123 > 123 * 12 {
-    println(2)
-} else {
-    println(3)
+let adds = adder()
+for true {
+    println(adds())
 }
