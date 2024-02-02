@@ -60,7 +60,7 @@ func (l *Lexer) NextToken() token.Token {
 			tok = token.Token{
 				Type:     token.EQ,
 				Literal:  string(ch) + string(l.ch),
-				Position: token.Position{Line: l.curLine, Char: l.curChar - 1},
+				Position: token.Position{Line: l.curLine, Column: l.curChar - 1},
 			}
 		} else {
 			tok = l.getToken(token.ASSIGN, l.ch)
@@ -84,7 +84,7 @@ func (l *Lexer) NextToken() token.Token {
 			tok = token.Token{
 				Type:     token.NOT_EQ,
 				Literal:  string(ch) + string(l.ch),
-				Position: token.Position{Line: l.curLine, Char: l.curChar - 1},
+				Position: token.Position{Line: l.curLine, Column: l.curChar - 1},
 			}
 		} else {
 			tok = l.getToken(token.BANG, l.ch)
@@ -100,7 +100,7 @@ func (l *Lexer) NextToken() token.Token {
 			tok = token.Token{
 				Type:     token.LTEQ,
 				Literal:  string(ch) + string(l.ch),
-				Position: token.Position{Line: l.curLine, Char: l.curChar - 1},
+				Position: token.Position{Line: l.curLine, Column: l.curChar - 1},
 			}
 		} else {
 			tok = l.getToken(token.LT, l.ch)
@@ -112,7 +112,7 @@ func (l *Lexer) NextToken() token.Token {
 			tok = token.Token{
 				Type:     token.GTEQ,
 				Literal:  string(ch) + string(l.ch),
-				Position: token.Position{Line: l.curLine, Char: l.curChar - 1},
+				Position: token.Position{Line: l.curLine, Column: l.curChar - 1},
 			}
 		} else {
 			tok = l.getToken(token.GT, l.ch)
@@ -130,15 +130,15 @@ func (l *Lexer) NextToken() token.Token {
 	case ']':
 		tok = l.getToken(token.RBRACKET, l.ch)
 	case '"':
-		tok.Position = token.Position{Line: l.curLine, Char: l.curChar}
+		tok.Position = token.Position{Line: l.curLine, Column: l.curChar}
 		tok.Type = token.STRING
 		tok.Literal = l.readString()
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
-		tok.Position = token.Position{Line: l.curLine, Char: l.curChar}
+		tok.Position = token.Position{Line: l.curLine, Column: l.curChar}
 	default:
-		tok.Position = token.Position{Line: l.curLine, Char: l.curChar}
+		tok.Position = token.Position{Line: l.curLine, Column: l.curChar}
 		if isLetter(l.ch) {
 			tok.Literal = l.readIdentifier()
 			tok.Type = token.LookupIdent(tok.Literal)
@@ -161,7 +161,7 @@ func (l *Lexer) NextToken() token.Token {
 }
 
 func (l *Lexer) getToken(tok token.TokenType, ch byte) token.Token {
-	return token.New(tok, ch, token.Position{Line: l.curLine, Char: l.curChar})
+	return token.New(tok, ch, token.Position{Line: l.curLine, Column: l.curChar})
 }
 
 func (l *Lexer) skipWhitespace() {

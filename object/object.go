@@ -6,6 +6,7 @@ import (
 	"hash/fnv"
 	"kol/ast"
 	"kol/code"
+	"kol/token"
 	"strings"
 )
 
@@ -83,11 +84,17 @@ func (rv *ReturnValue) Type() ObjectType { return RETURN_VALUE_OBJ }
 func (rv *ReturnValue) Inspect() string  { return rv.Value.Inspect() }
 
 type Error struct {
-	Message string
+	Message  string
+	Position *token.Position
 }
 
 func (e *Error) Type() ObjectType { return ERROR_OBJ }
-func (e *Error) Inspect() string  { return "ERROR: " + e.Message }
+func (e *Error) Inspect() string {
+	if e.Position != nil {
+		return fmt.Sprintf("Error at %d:%d: %s", e.Position.Line, e.Position.Column, e.Message)
+	}
+	return "ERROR: " + e.Message
+}
 
 type Function struct {
 	Parameters []*ast.Identifier

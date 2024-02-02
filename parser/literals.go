@@ -64,7 +64,7 @@ func (p *Parser) parseFunction() ast.Statement {
 	}
 	lit.Body = p.parseBlockStatement()
 	return &ast.LetStatement{
-		Token:   token.Token{Type: token.LET, Literal: "let"},
+		Token:   token.Token{Type: token.LET, Literal: "let", Position: lit.GetPosition()},
 		Name:    &ast.Identifier{Token: ident, Value: ident.Literal},
 		Value:   lit,
 		Mutable: false,

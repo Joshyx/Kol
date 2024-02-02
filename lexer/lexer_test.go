@@ -150,9 +150,9 @@ if (5 < 10) {
 			t.Fatalf("tests[%d] - line number wrong. expected=%d, got=%d",
 				i, tt.expectedLine, tok.Position.Line)
 		}
-		if tok.Position.Char != tt.expectedChar {
+		if tok.Position.Column != tt.expectedChar {
 			t.Fatalf("tests[%d] - char index wrong. expected=%d, got=%d",
-				i, tt.expectedChar, tok.Position.Char)
+				i, tt.expectedChar, tok.Position.Column)
 		}
 	}
 }

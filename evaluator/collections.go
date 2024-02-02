@@ -12,7 +12,7 @@ func evalIndexExpression(left, index object.Object) object.Object {
 	case left.Type() == object.HASH_OBJ:
 		return evalHashIndexExpression(left, index)
 	default:
-		return newError("index operator not supported: %s", left.Type())
+		return newUnpositionedError("index operator not supported: %s", left.Type())
 	}
 }
 func evalArrayIndexExpression(array, index object.Object) object.Object {
@@ -20,7 +20,7 @@ func evalArrayIndexExpression(array, index object.Object) object.Object {
 	idx := index.(*object.Integer).Value
 	max := int64(len(arrayObject.Elements) - 1)
 	if idx < 0 || idx > max {
-		return newError("Index %d out of bounds for array of size %d", idx, max+1)
+		return newUnpositionedError("Index %d out of bounds for array of size %d", idx, max+1)
 	}
 	return arrayObject.Elements[idx]
 }
@@ -28,7 +28,7 @@ func evalHashIndexExpression(hash, index object.Object) object.Object {
 	hashObject := hash.(*object.Hash)
 	key, ok := index.(object.Hashable)
 	if !ok {
-		return newError("unusable as hash key: %s", index.Type())
+		return newUnpositionedError("unusable as hash key: %s", index.Type())
 	}
 	pair, ok := hashObject.Pairs[key.HashKey()]
 	if !ok {
@@ -48,7 +48,7 @@ func evalHashLiteral(
 		}
 		hashKey, ok := key.(object.Hashable)
 		if !ok {
-			return newError("unusable as hash key: %s", key.Type())
+			return newUnpositionedError("unusable as hash key: %s", key.Type())
 		}
 		value := Eval(valueNode, env)
 		if isError(value) {

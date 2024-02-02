@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"kol/ast"
 	"kol/object"
+	"kol/token"
 )
 
 var (
@@ -31,7 +32,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		if isError(right) {
 			return right
 		}
-		return evalPrefixExpression(node.Operator, right)
+		return evalPrefixExpression(node.Operator, right, node.GetPosition())
 	case *ast.InfixExpression:
 		left := Eval(node.Left, env)
 		if isError(left) {
@@ -41,7 +42,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		if isError(right) {
 			return right
 		}
-		return evalInfixExpression(node.Operator, left, right)
+		return evalInfixExpression(node.Operator, left, right, node.GetPosition())
 	case *ast.BlockStatement:
 		return evalBlockStatement(node, env)
 	case *ast.IfExpression:
@@ -54,7 +55,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return &object.ReturnValue{Value: val}
 	case *ast.LetStatement:
 		if env.HasValue(node.Name.Value) {
-			return newError("Variable %s can't be redefined", node.Name.Value)
+			return newError("Variable %s can't be redefined", node.GetPosition(), node.Name.Value)
 		}
 		val := Eval(node.Value, env)
 		if isError(val) {
@@ -64,10 +65,10 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.ReassignStatement:
 		value, existing := env.Get(node.Name.Value)
 		if !existing {
-			return newError("Variable %s isn't defined", node.Name.Value)
+			return newError("Variable %s isn't defined", node.GetPosition(), node.Name.Value)
 		}
 		if !value.Mutable {
-			return newError("Variable %s isn't mutable", node.Name.Value)
+			return newError("Variable %s isn't mutable", node.GetPosition(), node.Name.Value)
 		}
 		val := Eval(node.Value, env)
 		if isError(val) {
@@ -89,7 +90,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		if len(args) == 1 && isError(args[0]) {
 			return args[0]
 		}
-		return applyFunction(function, args)
+		return applyFunction(function, args, node.GetPosition())
 	case *ast.ArrayLiteral:
 		elements := evalExpressions(node.Elements, env)
 		if len(elements) == 1 && isError(elements[0]) {
@@ -164,7 +165,7 @@ func evalIdentifier(
 	if builtin, ok := builtins[node.Value]; ok {
 		return builtin
 	}
-	return newError("identifier not found: " + node.Value)
+	return newError("identifier not found: "+node.Value, node.GetPosition())
 }
 
 func nativeBoolToBooleanObject(input bool) *object.Boolean {
@@ -181,6 +182,10 @@ func isError(obj object.Object) bool {
 	return false
 }
 
-func newError(format string, a ...interface{}) *object.Error {
-	return &object.Error{Message: fmt.Sprintf(format, a...)}
+func newError(format string, pos token.Position, a ...interface{}) *object.Error {
+	msg := fmt.Sprintf(format, a...)
+	return &object.Error{Message: msg, Position: &pos}
+}
+func newUnpositionedError(format string, a ...interface{}) *object.Error {
+	return &object.Error{Message: fmt.Sprintf(format, a...), Position: nil}
 }

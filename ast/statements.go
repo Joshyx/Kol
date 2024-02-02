@@ -33,6 +33,7 @@ func (ls *LetStatement) String() string {
 	out.WriteString(";")
 	return out.String()
 }
+func (ls *LetStatement) GetPosition() token.Position { return ls.Token.Position }
 
 type ReassignStatement struct {
 	Token token.Token
@@ -40,18 +41,19 @@ type ReassignStatement struct {
 	Value Expression
 }
 
-func (ls *ReassignStatement) statementNode()       {}
-func (ls *ReassignStatement) TokenLiteral() string { return ls.Token.Literal }
-func (ls *ReassignStatement) String() string {
+func (rs *ReassignStatement) statementNode()       {}
+func (rs *ReassignStatement) TokenLiteral() string { return rs.Token.Literal }
+func (rs *ReassignStatement) String() string {
 	var out bytes.Buffer
-	out.WriteString(ls.Name.String())
+	out.WriteString(rs.Name.String())
 	out.WriteString(" = ")
-	if ls.Value != nil {
-		out.WriteString(ls.Value.String())
+	if rs.Value != nil {
+		out.WriteString(rs.Value.String())
 	}
 	out.WriteString(";")
 	return out.String()
 }
+func (rs *ReassignStatement) GetPosition() token.Position { return rs.Token.Position }
 
 type ReturnStatement struct {
 	Token       token.Token
@@ -69,6 +71,7 @@ func (rs *ReturnStatement) String() string {
 	out.WriteString(";")
 	return out.String()
 }
+func (rs *ReturnStatement) GetPosition() token.Position { return rs.Token.Position }
 
 type ExpressionStatement struct {
 	Token      token.Token // the first token of the expression
@@ -83,6 +86,7 @@ func (es *ExpressionStatement) String() string {
 	}
 	return ""
 }
+func (es *ExpressionStatement) GetPosition() token.Position { return es.Token.Position }
 
 type BlockStatement struct {
 	Token      token.Token // the { token
@@ -98,3 +102,4 @@ func (bs *BlockStatement) String() string {
 	}
 	return out.String()
 }
+func (bs *BlockStatement) GetPosition() token.Position { return bs.Token.Position }

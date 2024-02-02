@@ -8,8 +8,8 @@ type Token struct {
 	Position Position
 }
 type Position struct {
-	Line int
-	Char int
+	Line   int
+	Column int
 }
 
 func New(tokenType TokenType, ch byte, pos Position) Token {

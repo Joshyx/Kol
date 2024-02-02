@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"kol/ast"
 	"kol/lexer"
+	"kol/token"
 	"testing"
 )
 
@@ -100,6 +101,73 @@ func TestIdentifierExpression(t *testing.T) {
 	if ident.TokenLiteral() != "foobar" {
 		t.Errorf("ident.TokenLiteral not %s. got=%s", "foobar",
 			ident.TokenLiteral())
+	}
+}
+
+func TestLineNumbering(t *testing.T) {
+	input := `let x = 5; char()
+"moin"
+
+fun main(args) {
+    return 1 + 1;
+}`
+	expected := []ast.Node{
+		&ast.LetStatement{
+			Token: token.Token{Position: token.Position{Line: 1, Column: 1}},
+			Value: &ast.IntegerLiteral{Token: token.Token{Position: token.Position{Line: 1, Column: 9}}},
+		},
+		&ast.CallExpression{Token: token.Token{Position: token.Position{Line: 1, Column: 12}}},
+		&ast.StringLiteral{Token: token.Token{Position: token.Position{Line: 2, Column: 1}}},
+		&ast.LetStatement{
+			Token: token.Token{Position: token.Position{Line: 4, Column: 1}},
+			Value: &ast.FunctionLiteral{
+				Token: token.Token{Position: token.Position{Line: 4, Column: 1}},
+				Body: &ast.BlockStatement{
+					Token: token.Token{Position: token.Position{Line: 4, Column: 16}},
+					Statements: []ast.Statement{
+						&ast.ReturnStatement{
+							Token:       token.Token{Position: token.Position{Line: 5, Column: 5}},
+							ReturnValue: &ast.InfixExpression{Token: token.Token{Position: token.Position{Line: 5, Column: 14}}},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != len(expected) {
+		t.Fatalf("Statement list size doesn't match. expected=%d, got=%d", len(expected), len(program.Statements))
+	}
+
+	for i, stmt := range program.Statements {
+		validatePos(t, stmt, expected[i], fmt.Sprint(i+1))
+	}
+}
+func validatePos(t *testing.T, stmt ast.Node, expected ast.Node, i string) {
+	pos, expectedPos := stmt.GetPosition(), expected.GetPosition()
+	if pos.Line != expectedPos.Line {
+		t.Fatalf("Test [%s]: Invalid line number. expected=%d, got=%d", i, expectedPos.Line, pos.Line)
+	}
+	if pos.Column != expectedPos.Column {
+		t.Fatalf("Test [%s]: Invalid char number. expected=%d, got=%d", i, expectedPos.Column, pos.Column)
+	}
+
+	switch stmt.(type) {
+	case *ast.LetStatement:
+		validatePos(t, stmt.(*ast.LetStatement).Value, expected.(*ast.LetStatement).Value, i+".1")
+	case *ast.FunctionLiteral:
+		validatePos(t, stmt.(*ast.FunctionLiteral).Body, expected.(*ast.FunctionLiteral).Body, i+".1")
+	case *ast.BlockStatement:
+		for innerI, b := range stmt.(*ast.BlockStatement).Statements {
+			validatePos(t, b, expected.(*ast.BlockStatement).Statements[innerI], fmt.Sprintf("%s.%d", i, innerI))
+		}
+	case *ast.ReturnStatement:
+		validatePos(t, stmt.(*ast.ReturnStatement).ReturnValue, expected.(*ast.ReturnStatement).ReturnValue, i+".1")
 	}
 }
 

@@ -1,6 +1,9 @@
 package evaluator
 
-import "kol/object"
+import (
+	"kol/object"
+	"kol/token"
+)
 
 func extendFunctionEnv(
 	fn *object.Function,
@@ -18,9 +21,12 @@ func unwrapReturnValue(obj object.Object) object.Object {
 	}
 	return obj
 }
-func applyFunction(fn object.Object, args []object.Object) object.Object {
+func applyFunction(fn object.Object, args []object.Object, pos token.Position) object.Object {
 	switch fn := fn.(type) {
 	case *object.Function:
+		if len(fn.Parameters) != len(args) {
+			return newError("Wrong number of arguments: want=%d, got=%d", pos, len(fn.Parameters), len(args))
+		}
 		extendedEnv := extendFunctionEnv(fn, args)
 		evaluated := Eval(fn.Body, extendedEnv)
 		return unwrapReturnValue(evaluated)
@@ -30,6 +36,6 @@ func applyFunction(fn object.Object, args []object.Object) object.Object {
 		}
 		return NULL
 	default:
-		return newError("not a function: %s", fn.Type())
+		return newError("not a function: %s", pos, fn.Type())
 	}
 }

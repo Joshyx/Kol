@@ -11,7 +11,7 @@ func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Obje
 		return condition
 	}
 	if condition.Type() != object.BOOLEAN_OBJ {
-		return newError("%s is not of type BOOLEAN and can't be used in an if-statement", condition.Type())
+		return newError("%s is not of type BOOLEAN and can't be used in an if-statement", ie.GetPosition(), condition.Type())
 	}
 
 	if condition == TRUE {

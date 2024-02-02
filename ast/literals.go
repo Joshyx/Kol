@@ -11,27 +11,30 @@ type IntegerLiteral struct {
 	Value int64
 }
 
-func (il *IntegerLiteral) expressionNode()      {}
-func (il *IntegerLiteral) TokenLiteral() string { return il.Token.Literal }
-func (il *IntegerLiteral) String() string       { return il.Token.Literal }
+func (il *IntegerLiteral) expressionNode()             {}
+func (il *IntegerLiteral) TokenLiteral() string        { return il.Token.Literal }
+func (il *IntegerLiteral) String() string              { return il.Token.Literal }
+func (il *IntegerLiteral) GetPosition() token.Position { return il.Token.Position }
 
 type FloatLiteral struct {
 	Token token.Token
 	Value float64
 }
 
-func (fl *FloatLiteral) expressionNode()      {}
-func (fl *FloatLiteral) TokenLiteral() string { return fl.Token.Literal }
-func (fl *FloatLiteral) String() string       { return fl.Token.Literal }
+func (fl *FloatLiteral) expressionNode()             {}
+func (fl *FloatLiteral) TokenLiteral() string        { return fl.Token.Literal }
+func (fl *FloatLiteral) String() string              { return fl.Token.Literal }
+func (fl *FloatLiteral) GetPosition() token.Position { return fl.Token.Position }
 
 type BooleanLiteral struct {
 	Token token.Token
 	Value bool
 }
 
-func (b *BooleanLiteral) expressionNode()      {}
-func (b *BooleanLiteral) TokenLiteral() string { return b.Token.Literal }
-func (b *BooleanLiteral) String() string       { return b.Token.Literal }
+func (b *BooleanLiteral) expressionNode()             {}
+func (b *BooleanLiteral) TokenLiteral() string        { return b.Token.Literal }
+func (b *BooleanLiteral) String() string              { return b.Token.Literal }
+func (b *BooleanLiteral) GetPosition() token.Position { return b.Token.Position }
 
 type FunctionLiteral struct {
 	Token      token.Token // The 'fn' token
@@ -54,15 +57,17 @@ func (fl *FunctionLiteral) String() string {
 	out.WriteString(fl.Body.String())
 	return out.String()
 }
+func (fl *FunctionLiteral) GetPosition() token.Position { return fl.Token.Position }
 
 type StringLiteral struct {
 	Token token.Token
 	Value string
 }
 
-func (sl *StringLiteral) expressionNode()      {}
-func (sl *StringLiteral) TokenLiteral() string { return sl.Token.Literal }
-func (sl *StringLiteral) String() string       { return sl.Token.Literal }
+func (sl *StringLiteral) expressionNode()             {}
+func (sl *StringLiteral) TokenLiteral() string        { return sl.Token.Literal }
+func (sl *StringLiteral) String() string              { return sl.Token.Literal }
+func (sl *StringLiteral) GetPosition() token.Position { return sl.Token.Position }
 
 type ArrayLiteral struct {
 	Token    token.Token // the '[' token
@@ -82,6 +87,7 @@ func (al *ArrayLiteral) String() string {
 	out.WriteString("]")
 	return out.String()
 }
+func (al *ArrayLiteral) GetPosition() token.Position { return al.Token.Position }
 
 type HashLiteral struct {
 	Token token.Token // the '{' token
@@ -101,3 +107,4 @@ func (hl *HashLiteral) String() string {
 	out.WriteString("}")
 	return out.String()
 }
+func (hl *HashLiteral) GetPosition() token.Position { return hl.Token.Position }

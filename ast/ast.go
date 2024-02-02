@@ -8,6 +8,7 @@ import (
 type Node interface {
 	TokenLiteral() string
 	String() string
+	GetPosition() token.Position
 }
 
 type Program struct {
@@ -28,12 +29,14 @@ func (p *Program) String() string {
 	}
 	return out.String()
 }
+func (p *Program) GetPosition() token.Position { return token.Position{Line: 1, Column: 1} }
 
 type Identifier struct {
 	Token token.Token
 	Value string
 }
 
-func (i *Identifier) expressionNode()      {}
-func (i *Identifier) TokenLiteral() string { return i.Token.Literal }
-func (i *Identifier) String() string       { return i.Value }
+func (i *Identifier) expressionNode()             {}
+func (i *Identifier) TokenLiteral() string        { return i.Token.Literal }
+func (i *Identifier) String() string              { return i.Value }
+func (i *Identifier) GetPosition() token.Position { return i.Token.Position }

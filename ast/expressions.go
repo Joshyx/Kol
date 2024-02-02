@@ -27,6 +27,7 @@ func (pe *PrefixExpression) String() string {
 	out.WriteString(")")
 	return out.String()
 }
+func (pe *PrefixExpression) GetPosition() token.Position { return pe.Token.Position }
 
 type InfixExpression struct {
 	Token    token.Token // The operator token, e.g. +
@@ -46,6 +47,7 @@ func (oe *InfixExpression) String() string {
 	out.WriteString(")")
 	return out.String()
 }
+func (ie *InfixExpression) GetPosition() token.Position { return ie.Token.Position }
 
 type IfExpression struct {
 	Token       token.Token // The 'if' token
@@ -68,6 +70,7 @@ func (ie *IfExpression) String() string {
 	}
 	return out.String()
 }
+func (ie *IfExpression) GetPosition() token.Position { return ie.Token.Position }
 
 type CallExpression struct {
 	Token    token.Token // The '(' token
@@ -90,6 +93,7 @@ func (ce *CallExpression) String() string {
 	out.WriteString(")")
 	return out.String()
 }
+func (ce *CallExpression) GetPosition() token.Position { return ce.Token.Position }
 
 type IndexExpression struct {
 	Token token.Token // The [ token
@@ -108,3 +112,4 @@ func (ie *IndexExpression) String() string {
 	out.WriteString("])")
 	return out.String()
 }
+func (ie *IndexExpression) GetPosition() token.Position { return ie.Token.Position }

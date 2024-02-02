@@ -2,26 +2,28 @@ package evaluator
 
 import (
 	"kol/object"
+	"kol/token"
 )
 
 func evalInfixExpression(
 	operator string,
 	left, right object.Object,
+	pos token.Position,
 ) object.Object {
 	switch {
 	case object.IsNumber(left) && object.IsNumber(right):
-		return evalNumberInfixExpression(operator, left, right)
+		return evalNumberInfixExpression(operator, left, right, pos)
 	case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
-		return evalStringInfixExpression(operator, left, right)
+		return evalStringInfixExpression(operator, left, right, pos)
 	case operator == "==":
 		return nativeBoolToBooleanObject(left == right)
 	case operator == "!=":
 		return nativeBoolToBooleanObject(left != right)
 	case left.Type() != right.Type():
-		return newError("type mismatch: %s %s %s",
+		return newError("type mismatch: %s %s %s", pos,
 			left.Type(), operator, right.Type())
 	default:
-		return newError("unknown operator: %s %s %s",
+		return newError("unknown operator: %s %s %s", pos,
 			left.Type(), operator, right.Type())
 	}
 }
@@ -29,6 +31,7 @@ func evalInfixExpression(
 func evalNumberInfixExpression(
 	operator string,
 	left, right object.Object,
+	pos token.Position,
 ) object.Object {
 	leftVal := object.GetNumber(left)
 	rightVal := object.GetNumber(right)
@@ -67,13 +70,14 @@ func evalNumberInfixExpression(
 	case "!=":
 		return nativeBoolToBooleanObject(leftVal != rightVal)
 	default:
-		return newError("unknown operator: %s %s %s",
+		return newError("unknown operator: %s %s %s", pos,
 			left.Type(), operator, right.Type())
 	}
 }
 func evalStringInfixExpression(
 	operator string,
 	left, right object.Object,
+	pos token.Position,
 ) object.Object {
 	leftVal := left.(*object.String).Value
 	rightVal := right.(*object.String).Value
@@ -83,7 +87,7 @@ func evalStringInfixExpression(
 	case "==":
 		return nativeBoolToBooleanObject(leftVal == rightVal)
 	default:
-		return newError("unknown operator: %s %s %s",
+		return newError("unknown operator: %s %s %s", pos,
 			left.Type(), operator, right.Type())
 	}
 }
