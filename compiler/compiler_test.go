@@ -514,7 +514,7 @@ func TestIndexExpressions(t *testing.T) {
 func TestFunctions(t *testing.T) {
 	tests := []compilerTestCase{
 		{
-			input: `fun() { return 5 + 10; }`,
+			input: `fun() int { return 5 + 10; }`,
 			expectedConstants: []interface{}{
 				5,
 				10,
@@ -531,7 +531,7 @@ func TestFunctions(t *testing.T) {
 			},
 		},
 		{
-			input: `fun() { return 5 + 10; }`,
+			input: `fun() int { return 5 + 10; }`,
 			expectedConstants: []interface{}{
 				5,
 				10,
@@ -548,7 +548,7 @@ func TestFunctions(t *testing.T) {
 			},
 		},
 		{
-			input: `fun() { 1; return 2; }`,
+			input: `fun() int { 1; return 2; }`,
 			expectedConstants: []interface{}{
 				1,
 				2,
@@ -624,7 +624,7 @@ noArg();
 		},
 		{
 			input: `
-let oneArg = fun(a) { a };oneArg(24);
+let oneArg = fun(a int) { a };oneArg(24);
 `,
 			expectedConstants: []interface{}{
 				[]code.Instructions{
@@ -644,7 +644,7 @@ let oneArg = fun(a) { a };oneArg(24);
 		},
 		{
 			input: `
-let manyArg = fun(a, b, c) { a; b; c };
+let manyArg = fun(a int, b int, c int) { a; b; c };
 manyArg(24, 25, 26);
 `,
 			expectedConstants: []interface{}{
@@ -837,10 +837,10 @@ func TestClosures(t *testing.T) {
 	tests := []compilerTestCase{
 		{
 			input: `
-fun(a) {
-fun(b) {
-a + b
-}
+fun(a int) fn {
+return fun(b int) int {
+return a + b
+};
 }
 `,
 			expectedConstants: []interface{}{
@@ -862,9 +862,9 @@ a + b
 		},
 		{
 			input: `
-fun(a) {
-fun(b) {
-fun(c) {
+fun(a int) {
+fun(b int) {
+fun(c int) {
 a + b + c
 }
 }

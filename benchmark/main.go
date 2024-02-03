@@ -14,7 +14,7 @@ import (
 
 var engine = flag.String("engine", "vm", "use 'vm' or 'eval'")
 var input = `
-let fibonacci = fun(x) {
+let fibonacci = fun(x int) int {
 if (x == 0) {
 0
 } else {

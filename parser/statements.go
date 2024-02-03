@@ -90,11 +90,15 @@ func getValue(ident ast.Identifier, tok token.Token, exp ast.Expression) ast.Exp
 func (p *Parser) parseReturnStatement() ast.Statement {
 	stmt := &ast.ReturnStatement{Token: p.curToken}
 
-	p.nextToken()
+	if p.peekTokenIs(token.SEMICOLON) || p.peekTokenIs(token.RPAREN) || p.peekTokenIs(token.RBRACKET) || p.peekTokenIs(token.RBRACE) {
+		p.nextToken()
+		stmt.ReturnValue = nil
+	} else {
+		p.nextToken()
+		stmt.ReturnValue = p.parseExpression(LOWEST)
+	}
 
-	stmt.ReturnValue = p.parseExpression(LOWEST)
-
-	for !p.curTokenIs(token.SEMICOLON) {
+	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}
 

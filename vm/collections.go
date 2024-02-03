@@ -41,7 +41,7 @@ func (vm *VM) executeArrayIndex(array, index object.Object) error {
 	i := index.(*object.Integer).Value
 	max := int64(len(arrayObject.Elements) - 1)
 	if i < 0 || i > max {
-		return vm.push(Null)
+		return vm.push(Void)
 	}
 	return vm.push(arrayObject.Elements[i])
 }
@@ -53,7 +53,7 @@ func (vm *VM) executeHashIndex(hash, index object.Object) error {
 	}
 	pair, ok := hashObject.Pairs[key.HashKey()]
 	if !ok {
-		return vm.push(Null)
+		return vm.push(Void)
 	}
 	return vm.push(pair.Value)
 }

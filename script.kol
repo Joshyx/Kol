@@ -1,7 +1,7 @@
 fun adder() {
     let mut i = 0;
     return fun() {
-        i = true;
+        i += 1;
         return i;
     };
 }

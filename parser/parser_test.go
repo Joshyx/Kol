@@ -15,7 +15,7 @@ func TestLetStatements(t *testing.T) {
 		expectedValue      interface{}
 		expectedMutable    bool
 	}{
-		{"let x = 5;", "x", 5, false},
+		{"let x = 5", "x", 5, false},
 		{"let y = true;", "y", true, false},
 		{"let foobar = y;", "foobar", "y", false},
 		{"let mut foobar = y;", "foobar", "y", true},
@@ -50,24 +50,24 @@ func TestReturnStatements(t *testing.T) {
 		{"return foobar;", "foobar"},
 	}
 
-	for _, tt := range tests {
+	for i, tt := range tests {
 		l := lexer.New(tt.input)
 		p := New(l)
 		program := p.ParseProgram()
 		checkParserErrors(t, p)
 
 		if len(program.Statements) != 1 {
-			t.Fatalf("program.Statements does not contain 1 statements. got=%d",
+			t.Fatalf("Test %d: program.Statements does not contain 1 statements. got=%d", i+1,
 				len(program.Statements))
 		}
 
 		stmt := program.Statements[0]
 		returnStmt, ok := stmt.(*ast.ReturnStatement)
 		if !ok {
-			t.Fatalf("stmt not *ast.returnStatement. got=%T", stmt)
+			t.Fatalf("Test %d: stmt not *ast.returnStatement. got=%T", i+1, stmt)
 		}
 		if returnStmt.TokenLiteral() != "return" {
-			t.Fatalf("returnStmt.TokenLiteral not 'return', got %q",
+			t.Fatalf("Test %d: returnStmt.TokenLiteral not 'return', got %q", i+1,
 				returnStmt.TokenLiteral())
 		}
 		if testLiteralExpression(t, returnStmt.ReturnValue, tt.expectedValue) {
@@ -108,7 +108,7 @@ func TestLineNumbering(t *testing.T) {
 	input := `let x = 5; char()
 "moin"
 
-fun main(args) {
+fun main(args str) int {
     return 1 + 1;
 }`
 	expected := []ast.Node{
@@ -122,8 +122,11 @@ fun main(args) {
 			Token: token.Token{Position: token.Position{Line: 4, Column: 1}},
 			Value: &ast.FunctionLiteral{
 				Token: token.Token{Position: token.Position{Line: 4, Column: 1}},
+				Parameters: []*ast.FunctionParameter{
+					{Token: token.Token{Position: token.Position{Line: 4, Column: 10}}},
+				},
 				Body: &ast.BlockStatement{
-					Token: token.Token{Position: token.Position{Line: 4, Column: 16}},
+					Token: token.Token{Position: token.Position{Line: 4, Column: 24}},
 					Statements: []ast.Statement{
 						&ast.ReturnStatement{
 							Token:       token.Token{Position: token.Position{Line: 5, Column: 5}},
@@ -734,7 +737,7 @@ func TestForElseExpression(t *testing.T) {
 }
 
 func TestFunctionParsing(t *testing.T) {
-	input := "fun add(a, b) { a + b; }"
+	input := "fun add(a int, b int) int { a + b; }"
 	l := lexer.New(input)
 	p := New(l)
 	program := p.ParseProgram()
@@ -745,7 +748,7 @@ func TestFunctionParsing(t *testing.T) {
 	}
 }
 func TestFunctionLiteralParsing(t *testing.T) {
-	input := `fun(x, y) { x + y; }`
+	input := `fun(x int, y int) { x + y; }`
 	l := lexer.New(input)
 	p := New(l)
 	program := p.ParseProgram()
@@ -768,11 +771,15 @@ func TestFunctionLiteralParsing(t *testing.T) {
 		t.Fatalf("function literal parameters wrong. want 2, got=%d\n",
 			len(function.Parameters))
 	}
-	testLiteralExpression(t, function.Parameters[0], "x")
-	testLiteralExpression(t, function.Parameters[1], "y")
+	testLiteralExpression(t, &function.Parameters[0].Ident, "x")
+	testLiteralExpression(t, &function.Parameters[1].Ident, "y")
 	if len(function.Body.Statements) != 1 {
 		t.Fatalf("function.Body.Statements has not 1 statements. got=%d\n",
 			len(function.Body.Statements))
+	}
+	returnType := function.ReturnType
+	if returnType.Value != "void" {
+		t.Fatalf("function return type is %s, expected void", returnType.Value)
 	}
 	bodyStmt, ok := function.Body.Statements[0].(*ast.ExpressionStatement)
 	if !ok {
@@ -784,12 +791,13 @@ func TestFunctionLiteralParsing(t *testing.T) {
 
 func TestFunctionParameterParsing(t *testing.T) {
 	tests := []struct {
-		input          string
-		expectedParams []string
+		input              string
+		expectedParams     map[string]string
+		expectedReturnType string
 	}{
-		{input: "fun() {};", expectedParams: []string{}},
-		{input: "fun(x) {};", expectedParams: []string{"x"}},
-		{input: "fun(x, y, z) {};", expectedParams: []string{"x", "y", "z"}},
+		{input: "fun() {};", expectedParams: map[string]string{}, expectedReturnType: "void"},
+		{input: "fun(x int) int {};", expectedParams: map[string]string{"x": "int"}, expectedReturnType: "int"},
+		{input: "fun(x int, y bool, z str) array {};", expectedParams: map[string]string{"x": "int", "y": "bool", "z": "str"}, expectedReturnType: "array"},
 	}
 	for _, tt := range tests {
 		l := lexer.New(tt.input)
@@ -802,8 +810,14 @@ func TestFunctionParameterParsing(t *testing.T) {
 			t.Errorf("length parameters wrong. want %d, got=%d\n",
 				len(tt.expectedParams), len(function.Parameters))
 		}
-		for i, ident := range tt.expectedParams {
-			testLiteralExpression(t, function.Parameters[i], ident)
+		i := 0
+		for ident, typ := range tt.expectedParams {
+			testLiteralExpression(t, &function.Parameters[i].Ident, ident)
+			testLiteralExpression(t, &function.Parameters[i].Type, typ)
+			i++
+		}
+		if tt.expectedReturnType != function.ReturnType.Value {
+			t.Fatalf("Wrong return type. expected=%s, got=%s", tt.expectedReturnType, function.ReturnType.Value)
 		}
 	}
 }

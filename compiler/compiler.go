@@ -245,7 +245,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 		c.enterScope()
 
 		for _, p := range node.Parameters {
-			c.symbolTable.Define(p.Value, false)
+			c.symbolTable.Define(p.Ident.Value, false)
 		}
 
 		err := c.Compile(node.Body)
@@ -256,6 +256,9 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.replaceLastPopWithReturn()
 		}
 		if !c.lastInstructionIs(code.OpReturnValue) {
+			if node.ReturnType.Value != "void" {
+				return createError("Expected return type %s, not void", node.GetPosition(), node.ReturnType.Value)
+			}
 			c.emit(code.OpReturn)
 		}
 

@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	NULL  = &object.Null{}
+	VOID  = &object.Void{}
 	TRUE  = &object.Boolean{Value: true}
 	FALSE = &object.Boolean{Value: false}
 )
@@ -90,8 +90,9 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return evalIdentifier(node, env)
 	case *ast.FunctionLiteral:
 		params := node.Parameters
+		returnType := node.ReturnType
 		body := node.Body
-		return &object.Function{Parameters: params, Env: env, Body: body}
+		return &object.Function{Parameters: params, ReturnType: returnType, Env: env, Body: body}
 	case *ast.CallExpression:
 		function := Eval(node.Function, env)
 		if isError(function) {

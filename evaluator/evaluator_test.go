@@ -418,7 +418,7 @@ func TestBangOperator(t *testing.T) {
 	}
 }
 func TestFunctionObject(t *testing.T) {
-	input := "fun(x) { x + 2; };"
+	input := "fun(x int) bool { x + 2; };"
 	evaluated := testEval(input)
 	fn, ok := evaluated.(*object.Function)
 	if !ok {
@@ -428,8 +428,14 @@ func TestFunctionObject(t *testing.T) {
 		t.Fatalf("function has wrong parameters. Parameters=%+v",
 			fn.Parameters)
 	}
-	if fn.Parameters[0].String() != "x" {
+	if fn.Parameters[0].Ident.String() != "x" {
 		t.Fatalf("parameter is not 'x'. got=%q", fn.Parameters[0])
+	}
+	if fn.Parameters[0].Type.String() != "int" {
+		t.Fatalf("parameter type is not 'int'. got=%q", fn.Parameters[0])
+	}
+	if fn.ReturnType.Value != "bool" {
+		t.Fatalf("function return type is not 'bool'. got=%q", fn.ReturnType.Value)
 	}
 	expectedBody := "(x + 2)"
 	if fn.Body.String() != expectedBody {
@@ -441,12 +447,12 @@ func TestFunctionApplication(t *testing.T) {
 		input    string
 		expected int64
 	}{
-		{"let identity = fun(x) { x; }; identity(5);", 5},
-		{"let identity = fun(x) { return x; }; identity(5);", 5},
-		{"let double = fun(x) { x * 2; }; double(5);", 10},
-		{"let add = fun(x, y) { x + y; }; add(5, 5);", 10},
-		{"let add = fun(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
-		{"fun(x) { x; }(5)", 5},
+		{"fun identity(x int) int { x; }; identity(5);", 5},
+		{"let identity = fun(x int) int { return x; }; identity(5);", 5},
+		{"let double = fun(x int) int { x * 2; }; double(5);", 10},
+		{"let add = fun(x int, y int) int { x + y; }; add(5, 5);", 10},
+		{"fun add(x int, y int) int { x + y; }; add(5 + 5, add(5, 5));", 20},
+		{"fun(x int) int { x; }(5)", 5},
 	}
 	for _, tt := range tests {
 		testIntegerObject(t, testEval(tt.input), tt.expected)
@@ -461,7 +467,7 @@ func testEval(input string) object.Object {
 	return Eval(program, env)
 }
 func testNullObject(t *testing.T, obj object.Object) bool {
-	if obj != NULL {
+	if obj != VOID {
 		t.Errorf("object is not NULL. got=%T (%+v)", obj, obj)
 		return false
 	}

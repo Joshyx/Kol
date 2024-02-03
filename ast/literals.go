@@ -38,8 +38,9 @@ func (b *BooleanLiteral) GetPosition() token.Position { return b.Token.Position 
 
 type FunctionLiteral struct {
 	Token      token.Token // The 'fn' token
-	Parameters []*Identifier
+	Parameters []*FunctionParameter
 	Body       *BlockStatement
+	ReturnType *Identifier
 }
 
 func (fl *FunctionLiteral) expressionNode()      {}
@@ -54,10 +55,24 @@ func (fl *FunctionLiteral) String() string {
 	out.WriteString("(")
 	out.WriteString(strings.Join(params, ", "))
 	out.WriteString(") ")
+	out.WriteString(fl.ReturnType.String() + " ")
 	out.WriteString(fl.Body.String())
 	return out.String()
 }
 func (fl *FunctionLiteral) GetPosition() token.Position { return fl.Token.Position }
+
+type FunctionParameter struct {
+	Token token.Token
+	Ident Identifier
+	Type  Identifier
+}
+
+func (fp *FunctionParameter) expressionNode()      {}
+func (fp *FunctionParameter) TokenLiteral() string { return fp.Token.Literal }
+func (fp *FunctionParameter) String() string {
+	return fp.Ident.String() + " " + string(fp.Type.Value)
+}
+func (fp *FunctionParameter) GetPosition() token.Position { return fp.Token.Position }
 
 type StringLiteral struct {
 	Token token.Token

@@ -13,7 +13,7 @@ func (vm *VM) executeBinaryOperation(op code.Opcode) error {
 	switch {
 	case object.IsNumber(left) && object.IsNumber(right):
 		return vm.executeBinaryNumberOperation(op, left, right)
-	case right.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
+	case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
 		return vm.executeBinaryStringOperation(op, left, right)
 	default:
 		return fmt.Errorf("unsupported types for binary operation: %s %s",

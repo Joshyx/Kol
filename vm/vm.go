@@ -12,7 +12,7 @@ const GlobalsSize = 65536
 var True = &object.Boolean{Value: true}
 var False = &object.Boolean{Value: false}
 
-var Null = &object.Null{}
+var Void = &object.Void{}
 
 type VM struct {
 	constants []object.Object
@@ -162,7 +162,7 @@ func (vm *VM) Run() error {
 				return err
 			}
 		case code.OpNull:
-			err := vm.push(Null)
+			err := vm.push(Void)
 			if err != nil {
 				return err
 			}
@@ -225,7 +225,7 @@ func (vm *VM) Run() error {
 			frame := vm.popFrame()
 			vm.sp = frame.basePointer - 1
 
-			err := vm.push(Null)
+			err := vm.push(Void)
 			if err != nil {
 				return err
 			}

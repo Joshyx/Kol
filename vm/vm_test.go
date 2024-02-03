@@ -81,13 +81,13 @@ func TestConditionals(t *testing.T) {
 	tests := []vmTestCase{
 		{"if (true) { 10 }", 10},
 		{"if (true) { 10 } else { 20 }", 10},
-		{"if (false) { 10 } else { 20 } ", 20},
+		{"if false { 10 } else { 20 } ", 20},
 		{"if (1 < 2) { 10 }", 10},
 		{"if (1 < 2) { 10 } else { 20 }", 10},
 		{"if (1 > 2) { 10 } else { 20 }", 20},
-		{"if (1) { 10 }", Null},
-		{"if (1 > 2) { 10 }", Null},
-		{"if (false) { 10 }", Null},
+		{"if 1 { 10 }", Void},
+		{"if (1 > 2) { 10 }", Void},
+		{"if (false) { 10 }", Void},
 		{"if ((if (false) { true } else { false })) { 10 } else { 20 }", 20},
 	}
 	runVmTests(t, tests)
@@ -143,13 +143,13 @@ func TestIndexExpressions(t *testing.T) {
 		{"[1, 2, 3][1]", 2},
 		{"[1, 2, 3][0 + 2]", 3},
 		{"[[1, 1, 1]][0][0]", 1},
-		{"[][0]", Null},
-		{"[1, 2, 3][99]", Null},
-		{"[1][-1]", Null},
+		{"[][0]", Void},
+		{"[1, 2, 3][99]", Void},
+		{"[1][-1]", Void},
 		{"{\"1\": 1, \"2\": 2}[\"1\"]", 1},
 		{"{\"1\": 1, \"2\": 2}[\"2\"]", 2},
-		{"{\"1\": 1}[\"0\"]", Null},
-		{"{}[\"-:\"]", Null},
+		{"{\"1\": 1}[\"0\"]", Void},
+		{"{}[\"-:\"]", Void},
 	}
 	runVmTests(t, tests)
 }
@@ -208,7 +208,7 @@ func TestFunctionsWithoutReturnValue(t *testing.T) {
 let noReturn = fun() { };
 noReturn();
 `,
-			expected: Null,
+			expected: Void,
 		},
 		{
 			input: `
@@ -217,7 +217,7 @@ let noReturnTwo = fun() { noReturn(); };
 noReturn();
 noReturnTwo();
 `,
-			expected: Null,
+			expected: Void,
 		},
 	}
 	runVmTests(t, tests)
@@ -298,21 +298,21 @@ func TestCallingFunctionsWithArgumentsAndBindings(t *testing.T) {
 	tests := []vmTestCase{
 		{
 			input: `
-let identity = fun(a) { a; };
+let identity = fun(a int) { a; };
 identity(4);
 `,
 			expected: 4,
 		},
 		{
 			input: `
-let sum = fun(a, b) { a + b; };
+let sum = fun(a int, b int) { a + b; };
 sum(1, 2);
 `,
 			expected: 3,
 		},
 		{
 			input: `
-let sum = fun(a, b) {
+let sum = fun(a int, b int) {
 let c = a + b;
 c;
 };
@@ -322,7 +322,7 @@ sum(1, 2);
 		},
 		{
 			input: `
-let sum = fun(a, b) {
+let sum = fun(a int, b int) {
 let c = a + b;
 c;
 };
@@ -331,7 +331,7 @@ sum(1, 2) + sum(3, 4);`,
 		},
 		{
 			input: `
-let sum = fun(a, b) {
+let sum = fun(a int, b int) {
 let c = a + b;
 c;
 };
@@ -345,7 +345,7 @@ outer();
 		{
 			input: `
 let globalNum = 10;
-let sum = fun(a, b) {
+let sum = fun(a int, b int) {
 let c = a + b;
 c + globalNum;
 };
@@ -366,15 +366,16 @@ func TestCallingFunctionsWithWrongArguments(t *testing.T) {
 			expected: `wrong number of arguments: want=0, got=1`,
 		},
 		{
-			input:    `fun(a) { a; }();`,
+			input:    `fun(a int) { a; }();`,
 			expected: `wrong number of arguments: want=1, got=0`,
 		},
 		{
-			input:    `fun(a, b) { a + b; }(1);`,
+			input:    `fun(a bool, b str) { a + b; }(1);`,
 			expected: `wrong number of arguments: want=2, got=1`,
 		},
 	}
-	for _, tt := range tests {
+	for i, tt := range tests {
+		fmt.Printf("Test %d:\n", i)
 		program := parse(tt.input)
 		comp := compiler.New()
 		err := comp.Compile(program)
@@ -409,7 +410,7 @@ func TestBuiltinFunctions(t *testing.T) {
 		},
 		{`len([1, 2, 3])`, 3},
 		{`len([])`, 0},
-		{`println("hello", "world!")`, Null},
+		{`println("hello", "world!")`, Void},
 		{`push([], 1)`, []int{1}},
 		{`push(1, 1)`, &object.Error{
 			Message: "argument to `push` must be ARRAY, got INTEGER",
@@ -422,7 +423,7 @@ func TestClosures(t *testing.T) {
 	tests := []vmTestCase{
 		{
 			input: `
-let newClosure = fun(a) {
+let newClosure = fun(a int) {
 fun() { a; };
 };
 let closure = newClosure(99);
@@ -432,8 +433,8 @@ closure();
 		},
 		{
 			input: `
-let newAdder = fun(a, b) {
-fun(c) { a + b + c };
+let newAdder = fun(a int, b int) {
+fun(c int) { a + b + c };
 };
 let adder = newAdder(1, 2);
 adder(8);
@@ -442,9 +443,9 @@ adder(8);
 		},
 		{
 			input: `
-let newAdder = fun(a, b) {
+let newAdder = fun(a int, b int) {
 let c = a + b;
-fun(d) { c + d };
+fun(d int) { c + d };
 };
 let adder = newAdder(1, 2);
 adder(8);
@@ -453,11 +454,11 @@ adder(8);
 		},
 		{
 			input: `
-let newAdderOuter = fun(a, b) {
+let newAdderOuter = fun(a int, b int) {
 let c = a + b;
-fun(d) {
+fun(d int) {
 let e = d + c;
-fun(f) { e + f; };
+fun(f int) { e + f; };
 };
 };
 let newAdderInner = newAdderOuter(1, 2)
@@ -468,9 +469,9 @@ adder(8);
 		},
 		{
 			input: `let a = 1;
-let newAdderOuter = fun(b) {
-fun(c) {
-fun(d) { a + b + c + d };
+let newAdderOuter = fun(b int) {
+fun(c int) {
+fun(d int) { a + b + c + d };
 };
 };
 let newAdderInner = newAdderOuter(2)
@@ -481,7 +482,7 @@ adder(8);
 		},
 		{
 			input: `
-let newClosure = fun(a, b) {
+let newClosure = fun(a int, b int) {
 let one = fun() { a; };
 let two = fun() { b; };
 fun() { one() + two(); };
@@ -498,7 +499,7 @@ func TestRecursiveFibonacci(t *testing.T) {
 	tests := []vmTestCase{
 		{
 			input: `
-let fibonacci = fun(x) {
+let fibonacci = fun(x int) {
 if (x == 0) {
 return 0;
 } else {
@@ -592,8 +593,8 @@ func testExpectedObject(
 		if err != nil {
 			t.Errorf("testStringObject failed: %s", err)
 		}
-	case *object.Null:
-		if actual != Null {
+	case *object.Void:
+		if actual != Void {
 			t.Errorf("object is not Null: %T (%+v)", actual, actual)
 		}
 	case []int:

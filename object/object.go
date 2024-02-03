@@ -17,7 +17,7 @@ const (
 	INTEGER_OBJ           = "INTEGER"
 	FLOAT_OBJ             = "FLOAT"
 	BOOLEAN_OBJ           = "BOOLEAN"
-	NULL_OBJ              = "NULL"
+	VOID_OBJ              = "VOID"
 	RETURN_VALUE_OBJ      = "RETURN_VALUE"
 	BREAK_VALUE_OBJECT    = "BREAK_VALUE"
 	ERROR_OBJ             = "ERROR"
@@ -29,6 +29,29 @@ const (
 	COMPILED_FUNCTION_OBJ = "COMPILED_FUNCTION_OBJ"
 	CLOSURE_OBJ           = "CLOSURE"
 )
+
+func TypeFromString(input string) (ObjectType, bool) {
+	switch input {
+	case "int":
+		return INTEGER_OBJ, true
+	case "float":
+		return FLOAT_OBJ, true
+	case "bool":
+		return BOOLEAN_OBJ, true
+	case "str":
+		return STRING_OBJ, true
+	case "fn":
+		return FUNCTION_OBJ, true
+	case "array":
+		return ARRAY_OBJ, true
+	case "map":
+		return HASH_OBJ, true
+	case "void":
+		return VOID_OBJ, true
+	default:
+		return ERROR_OBJ, false
+	}
+}
 
 type Object interface {
 	Type() ObjectType
@@ -72,10 +95,10 @@ type Boolean struct {
 func (b *Boolean) Inspect() string  { return fmt.Sprintf("%t", b.Value) }
 func (b *Boolean) Type() ObjectType { return BOOLEAN_OBJ }
 
-type Null struct{}
+type Void struct{}
 
-func (n *Null) Type() ObjectType { return NULL_OBJ }
-func (n *Null) Inspect() string  { return "null" }
+func (n *Void) Type() ObjectType { return VOID_OBJ }
+func (n *Void) Inspect() string  { return "void" }
 
 type ReturnValue struct {
 	Value Object
@@ -105,7 +128,8 @@ func (e *Error) Inspect() string {
 }
 
 type Function struct {
-	Parameters []*ast.Identifier
+	Parameters []*ast.FunctionParameter
+	ReturnType *ast.Identifier
 	Body       *ast.BlockStatement
 	Env        *Environment
 }
@@ -115,9 +139,9 @@ func (f *Function) Inspect() string {
 	var out bytes.Buffer
 	params := []string{}
 	for _, p := range f.Parameters {
-		params = append(params, p.String())
+		params = append(params, p.Ident.String()+" "+p.Type.String())
 	}
-	out.WriteString("fn")
+	out.WriteString("fun")
 	out.WriteString("(")
 	out.WriteString(strings.Join(params, ", "))
 	out.WriteString(") {\n")

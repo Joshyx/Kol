@@ -16,7 +16,7 @@ func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Obje
 	} else if !result && ie.Alternative != nil {
 		return Eval(ie.Alternative, env)
 	} else {
-		return NULL
+		return VOID
 	}
 }
 
@@ -42,7 +42,7 @@ func evalForExpression(ie *ast.ForExpression, env *object.Environment) object.Ob
 	if ie.Alternative != nil {
 		obj = Eval(ie.Alternative, env)
 	} else {
-		return NULL
+		return VOID
 	}
 	return obj
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"kol/ast"
 	"kol/token"
+	"slices"
 	"strconv"
 )
 
@@ -43,6 +44,16 @@ func (p *Parser) parseFunctionLiteral() ast.Expression {
 		return nil
 	}
 	lit.Parameters = p.parseFunctionParameters()
+	if p.peekTokenIs(token.IDENT) {
+		p.nextToken()
+		if !slices.Contains(ast.Types, p.curToken.Literal) {
+			panic(fmt.Sprintf("Can't find type with name %s", p.curToken.Literal))
+		}
+
+		lit.ReturnType = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+	} else {
+		lit.ReturnType = &ast.Identifier{Token: p.curToken, Value: "void"}
+	}
 	if !p.expectPeek(token.LBRACE) {
 		return nil
 	}
@@ -59,6 +70,16 @@ func (p *Parser) parseFunction() ast.Statement {
 		return nil
 	}
 	lit.Parameters = p.parseFunctionParameters()
+	if p.peekTokenIs(token.IDENT) {
+		p.nextToken()
+		if !slices.Contains(ast.Types, p.curToken.Literal) {
+			panic(fmt.Sprintf("Can't find type with name %s", p.curToken.Literal))
+		}
+
+		lit.ReturnType = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+	} else {
+		lit.ReturnType = &ast.Identifier{Token: p.curToken, Value: "void"}
+	}
 	if !p.expectPeek(token.LBRACE) {
 		return nil
 	}
@@ -71,25 +92,35 @@ func (p *Parser) parseFunction() ast.Statement {
 	}
 }
 
-func (p *Parser) parseFunctionParameters() []*ast.Identifier {
-	identifiers := []*ast.Identifier{}
+func (p *Parser) parseFunctionParameters() []*ast.FunctionParameter {
+	arguments := []*ast.FunctionParameter{}
 	if p.peekTokenIs(token.RPAREN) {
 		p.nextToken()
-		return identifiers
+		return arguments
 	}
 	p.nextToken()
 	ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
-	identifiers = append(identifiers, ident)
+	p.nextToken()
+	if !slices.Contains(ast.Types, p.curToken.Literal) {
+		panic(fmt.Sprintf("Can't find type with name %s", p.curToken.Literal))
+	}
+	expType := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+	arguments = append(arguments, &ast.FunctionParameter{Ident: *ident, Type: *expType})
 	for p.peekTokenIs(token.COMMA) {
 		p.nextToken()
 		p.nextToken()
 		ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
-		identifiers = append(identifiers, ident)
+		p.nextToken()
+		if !slices.Contains(ast.Types, p.curToken.Literal) {
+			panic(fmt.Sprintf("Can't find type with name %s", p.curToken.Literal))
+		}
+		expType := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+		arguments = append(arguments, &ast.FunctionParameter{Ident: *ident, Type: *expType})
 	}
 	if !p.expectPeek(token.RPAREN) {
 		return nil
 	}
-	return identifiers
+	return arguments
 }
 func (p *Parser) parseStringLiteral() ast.Expression {
 	return &ast.StringLiteral{Token: p.curToken, Value: p.curToken.Literal}

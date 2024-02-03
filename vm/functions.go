@@ -48,7 +48,7 @@ func (vm *VM) callBuiltin(builtin *object.Builtin, numArgs int) error {
 	if result != nil {
 		vm.push(result)
 	} else {
-		vm.push(Null)
+		vm.push(Void)
 	}
 	return nil
 }
