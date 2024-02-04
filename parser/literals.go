@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"fmt"
 	"kol/ast"
 	"kol/token"
 	"slices"
@@ -12,8 +11,7 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 	lit := &ast.IntegerLiteral{Token: p.curToken}
 	value, err := strconv.ParseInt(p.curToken.Literal, 0, 64)
 	if err != nil {
-		msg := fmt.Sprintf("could not parse %q as integer", p.curToken.Literal)
-		p.errors = append(p.errors, msg)
+		p.addError("could not parse %q as integer", p.curToken.Position, p.curToken.Literal)
 		return nil
 	}
 	lit.Value = value
@@ -23,8 +21,7 @@ func (p *Parser) parseFloatLiteral() ast.Expression {
 	lit := &ast.FloatLiteral{Token: p.curToken}
 	value, err := strconv.ParseFloat(p.curToken.Literal, 0)
 	if err != nil {
-		msg := fmt.Sprintf("could not parse %q as float", p.curToken.Literal)
-		p.errors = append(p.errors, msg)
+		p.addError("could not parse %q as float", p.curToken.Position, p.curToken.Literal)
 		return nil
 	}
 	lit.Value = value
@@ -47,7 +44,7 @@ func (p *Parser) parseFunctionLiteral() ast.Expression {
 	if p.peekTokenIs(token.IDENT) {
 		p.nextToken()
 		if !slices.Contains(ast.Types, p.curToken.Literal) {
-			panic(fmt.Sprintf("Can't find type with name %s", p.curToken.Literal))
+			p.addError("Can't find type with name %s", p.curToken.Position, p.curToken.Literal)
 		}
 
 		lit.ReturnType = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
@@ -73,7 +70,8 @@ func (p *Parser) parseFunction() ast.Statement {
 	if p.peekTokenIs(token.IDENT) {
 		p.nextToken()
 		if !slices.Contains(ast.Types, p.curToken.Literal) {
-			panic(fmt.Sprintf("Can't find type with name %s", p.curToken.Literal))
+			p.addError("Can't find type with name %s", p.curToken.Position, p.curToken.Literal)
+			return nil
 		}
 
 		lit.ReturnType = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
@@ -101,8 +99,14 @@ func (p *Parser) parseFunctionParameters() []*ast.FunctionParameter {
 	p.nextToken()
 	ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 	p.nextToken()
+	if p.curTokenIs(token.RPAREN) || p.curTokenIs(token.COMMA) {
+		p.addError("No type specified for parameter %s", p.curToken.Position, ident.Value)
+		return nil
+	}
 	if !slices.Contains(ast.Types, p.curToken.Literal) {
-		panic(fmt.Sprintf("Can't find type with name %s", p.curToken.Literal))
+		p.addError("Can't find type with name %s", p.curToken.Position, p.curToken.Literal)
+		p.nextToken()
+		return nil
 	}
 	expType := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 	arguments = append(arguments, &ast.FunctionParameter{Ident: *ident, Type: *expType})
@@ -111,8 +115,14 @@ func (p *Parser) parseFunctionParameters() []*ast.FunctionParameter {
 		p.nextToken()
 		ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 		p.nextToken()
+		if p.curTokenIs(token.RPAREN) || p.curTokenIs(token.COMMA) {
+			p.addError("No type specified for parameter %s", p.curToken.Position, ident.Value)
+			p.nextToken()
+			return nil
+		}
 		if !slices.Contains(ast.Types, p.curToken.Literal) {
-			panic(fmt.Sprintf("Can't find type with name %s", p.curToken.Literal))
+			p.addError("Can't find type with name %s", p.curToken.Position, p.curToken.Literal)
+			return nil
 		}
 		expType := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 		arguments = append(arguments, &ast.FunctionParameter{Ident: *ident, Type: *expType})

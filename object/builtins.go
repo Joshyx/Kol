@@ -12,9 +12,18 @@ var Builtins = []struct {
 	{
 		"println",
 		&Builtin{func(args ...Object) Object {
-			for _, o := range args {
-				fmt.Print(o.Inspect())
+			if len(args) < 1 {
+				return newError("Function needs at least one argument")
 			}
+			msg, ok := args[0].(*String)
+			if !ok {
+				return newError("First argument must be a string (got %s), try str() to expilitly convert to a string", args[0].Type())
+			}
+			a := make([]any, len(args)-1)
+			for i, o := range args[1:] {
+				a[i] = o.Inspect()
+			}
+			fmt.Printf(msg.Inspect(), a...)
 			fmt.Println()
 			return nil
 		},

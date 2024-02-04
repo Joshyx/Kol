@@ -168,11 +168,17 @@ func (vm *VM) Run() error {
 			}
 		case code.OpJump:
 			pos := int(code.ReadUint16(ins[ip+1:]))
+			if vm.currentFrame().ip > pos {
+				vm.pop()
+			}
 			vm.currentFrame().ip = pos - 1
 		case code.OpJumpNotTrue:
 			pos := int(code.ReadUint16(ins[ip+1:]))
 			vm.currentFrame().ip += 2
 			condition := vm.pop()
+			if condition.Type() == object.ERROR_OBJ {
+				return fmt.Errorf(condition.Inspect())
+			}
 			if !isTrue(condition) {
 				vm.currentFrame().ip = pos - 1
 			}

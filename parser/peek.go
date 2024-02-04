@@ -27,7 +27,7 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
 		p.nextToken()
 		return true
 	} else {
-		p.peekError(t)
+		p.peekError(t, p.peekToken.Position)
 		return false
 	}
 }

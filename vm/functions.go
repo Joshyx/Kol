@@ -44,6 +44,9 @@ func (vm *VM) callClosure(cl *object.Closure, numArgs int) error {
 func (vm *VM) callBuiltin(builtin *object.Builtin, numArgs int) error {
 	args := vm.stack[vm.sp-numArgs : vm.sp]
 	result := builtin.Fn(args...)
+	if result != nil && result.Type() == object.ERROR_OBJ {
+		return fmt.Errorf(result.Inspect())
+	}
 	vm.sp = vm.sp - numArgs - 1
 	if result != nil {
 		vm.push(result)

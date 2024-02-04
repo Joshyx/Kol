@@ -81,7 +81,9 @@ func StartCompiledRepl() {
 			continue
 		}
 		stackTop := machine.LastPoppedStackElem()
-		io.WriteString(out, stackTop.Inspect())
-		io.WriteString(out, "\n")
+		if stackTop.Type() != object.VOID_OBJ {
+			io.WriteString(out, stackTop.Inspect())
+			io.WriteString(out, "\n")
+		}
 	}
 }

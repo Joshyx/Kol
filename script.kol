@@ -1,11 +1,11 @@
-fun adder() {
+fun adder() fn {
     let mut i = 0;
-    return fun() {
+    return fun() int {
         i += 1;
         return i;
     };
 }
 let adds = adder()
 for true {
-    println(adds())
+    println(str(adds()))
 }

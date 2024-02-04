@@ -9,13 +9,11 @@ import (
 func (p *Parser) Errors() []string {
 	return p.errors
 }
-func (p *Parser) peekError(t token.TokenType) {
-	msg := fmt.Sprintf("expected next token to be %s, got %s instead", t, p.peekToken.Type)
-	p.errors = append(p.errors, msg)
+func (p *Parser) peekError(t token.TokenType, pos token.Position) {
+	p.addError("expected next token to be %s, got %s instead", pos, t, p.peekToken.Type)
 }
-func (p *Parser) noPrefixParseFnError(t token.TokenType) {
-	msg := fmt.Sprintf("no prefix parse function for %s found", t)
-	p.errors = append(p.errors, msg)
+func (p *Parser) noPrefixParseFnError(t token.TokenType, pos token.Position) {
+	p.addError("no prefix parse function for %s found", pos, t)
 }
 func checkParserErrors(t *testing.T, p *Parser) {
 	errors := p.Errors()
@@ -29,4 +27,8 @@ func checkParserErrors(t *testing.T, p *Parser) {
 		t.Errorf("parser error: %q", msg)
 	}
 	t.FailNow()
+}
+func (p *Parser) addError(msg string, pos token.Position, a ...interface{}) {
+	newMsg := fmt.Sprintf(msg, a...)
+	p.errors = append(p.errors, fmt.Sprintf("Parser error at %d:%d: %s", pos.Line, pos.Column, newMsg))
 }

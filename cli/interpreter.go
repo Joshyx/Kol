@@ -25,7 +25,10 @@ func StartInterpreter(input string) {
 	}
 
 	env := object.NewEnvironment()
-	evaluator.Eval(program, env)
+	result := evaluator.Eval(program, env)
+	if result.Type() == object.ERROR_OBJ {
+		fmt.Println(result.Inspect())
+	}
 }
 func StartInterpretedRepl() {
 	user, err := user.Current()
@@ -54,7 +57,7 @@ func StartInterpretedRepl() {
 			continue
 		}
 		evaluated := evaluator.Eval(program, env)
-		if evaluated != nil {
+		if evaluated != nil && evaluated.Type() != object.VOID_OBJ {
 			io.WriteString(os.Stdout, evaluated.Inspect())
 			io.WriteString(os.Stdout, "\n")
 		}

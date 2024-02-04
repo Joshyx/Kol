@@ -30,6 +30,10 @@ func evalForExpression(ie *ast.ForExpression, env *object.Environment) object.Ob
 	for result {
 		obj = Eval(ie.Consequence, env)
 
+		if isError(obj) {
+			return obj
+		}
+
 		if brObj, ok := obj.(*object.BreakValue); ok {
 			return brObj.Value
 		}

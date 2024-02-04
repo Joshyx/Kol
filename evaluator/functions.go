@@ -20,6 +20,9 @@ func extendFunctionEnv(
 	return env, nil
 }
 func unwrapReturnValue(obj object.Object) object.Object {
+	if obj == nil {
+		return VOID
+	}
 	if returnValue, ok := obj.(*object.ReturnValue); ok {
 		return returnValue.Value
 	}

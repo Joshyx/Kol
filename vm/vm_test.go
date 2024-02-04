@@ -400,12 +400,12 @@ func TestBuiltinFunctions(t *testing.T) {
 		{
 			`len(1)`,
 			&object.Error{
-				Message: "argument to `len` not supported, got INTEGER",
+				Message: "ERROR: argument to `len` not supported, got INTEGER",
 			},
 		},
 		{`len("one", "two")`,
 			&object.Error{
-				Message: "wrong number of arguments. got=2, want=1",
+				Message: "ERROR: wrong number of arguments. got=2, want=1",
 			},
 		},
 		{`len([1, 2, 3])`, 3},
@@ -413,7 +413,7 @@ func TestBuiltinFunctions(t *testing.T) {
 		{`println("hello", "world!")`, Void},
 		{`push([], 1)`, []int{1}},
 		{`push(1, 1)`, &object.Error{
-			Message: "argument to `push` must be ARRAY, got INTEGER",
+			Message: "ERROR: argument to `push` must be ARRAY, got INTEGER",
 		},
 		},
 	}
@@ -521,7 +521,8 @@ fibonacci(15);
 func runVmTests(t *testing.T, tests []vmTestCase) {
 	t.Helper()
 
-	for _, tt := range tests {
+	for i, tt := range tests {
+		fmt.Printf("Test %d:\n", i)
 		program := parse(tt.input)
 
 		comp := compiler.New()
@@ -533,7 +534,12 @@ func runVmTests(t *testing.T, tests []vmTestCase) {
 		vm := New(comp.Bytecode())
 		err = vm.Run()
 		if err != nil {
-			t.Fatalf("vm error: %s", err)
+			if _, ok := tt.expected.(*object.Error); ok {
+				testExpectedObject(t, tt.expected, &object.Error{Message: err.Error()})
+				return
+			} else {
+				t.Fatalf("vm error: %s", err)
+			}
 		}
 
 		stackElem := vm.LastPoppedStackElem()

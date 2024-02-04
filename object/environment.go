@@ -27,7 +27,11 @@ func (e *Environment) Get(name string) (Variable, bool) {
 	return obj, ok
 }
 func (e *Environment) Set(name string, obj Object) Object {
-	e.store[name] = Variable{Value: obj, Mutable: e.store[name].Mutable}
+	val, ok := e.store[name]
+	if !ok && e.outer != nil {
+		return e.outer.Set(name, obj)
+	}
+	e.store[name] = Variable{Value: obj, Mutable: val.Mutable}
 	return obj
 }
 func (e *Environment) SetValue(name string, val Variable) Object {
